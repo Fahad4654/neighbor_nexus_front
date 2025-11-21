@@ -1,23 +1,18 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import { LatLngExpression, LatLng } from 'leaflet';
+import { LatLngExpression } from 'leaflet';
 
 type LocationPickerProps = {
   location: { lat: number; lng: number } | null;
   onLocationChange: (location: { lat: number; lng: number }) => void;
 };
 
-function DraggableMarker({ onLocationChange, initialPosition }: { onLocationChange: (location: { lat: number; lng: number }) => void, initialPosition: LatLngExpression }) {
-  const [position, setPosition] = useState<LatLng | null>(new LatLng(
-      (initialPosition as any).lat,
-      (initialPosition as any).lng
-  ));
+function DraggableMarker({ onLocationChange, position }: { onLocationChange: (location: { lat: number; lng: number }) => void, position: LatLngExpression }) {
 
   const map = useMapEvents({
     click(e) {
-      setPosition(e.latlng);
       onLocationChange(e.latlng);
     },
   });
@@ -25,20 +20,17 @@ function DraggableMarker({ onLocationChange, initialPosition }: { onLocationChan
   const eventHandlers = useMemo(
     () => ({
       dragend(e: any) {
-        const newPos = e.target.getLatLng();
-        setPosition(newPos);
-        onLocationChange(newPos);
+        onLocationChange(e.target.getLatLng());
       },
     }),
     [onLocationChange],
   );
 
-  return position === null ? null : (
+  return (
     <Marker
       draggable={true}
       eventHandlers={eventHandlers}
       position={position}
-      
     ></Marker>
   );
 }
@@ -54,7 +46,7 @@ export default function LocationPicker({ location, onLocationChange }: LocationP
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <DraggableMarker onLocationChange={onLocationChange} initialPosition={initialPosition} />
+      <DraggableMarker onLocationChange={onLocationChange} position={initialPosition} />
     </MapContainer>
   );
 }
