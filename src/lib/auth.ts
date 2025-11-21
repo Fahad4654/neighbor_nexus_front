@@ -31,6 +31,29 @@ export async function login(identifier: string, password: string): Promise<any> 
   return data;
 }
 
+export async function register(userData: any): Promise<any> {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    if (!backendUrl) {
+      throw new Error('Backend URL is not configured');
+    }
+  
+    const response = await fetch(`${backendUrl}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+  
+    const data = await response.json();
+  
+    if (!response.ok) {
+      throw new Error(data.message || 'Registration failed');
+    }
+  
+    return data;
+  }
+
 export async function logout() {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (!backendUrl) {

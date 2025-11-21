@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -25,15 +26,25 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User, Phone } from 'lucide-react';
+import { register } from '@/lib/auth';
 
 const formSchema = z
   .object({
-    name: z.string().min(2, {
-      message: 'Name must be at least 2 characters.',
+    username: z.string().min(2, {
+      message: 'Username must be at least 2 characters.',
+    }),
+    firstname: z.string().min(2, {
+      message: 'First name must be at least 2 characters.',
+    }),
+    lastname: z.string().min(2, {
+      message: 'Last name must be at least 2 characters.',
     }),
     email: z.string().email({
       message: 'Please enter a valid email address.',
+    }),
+    phoneNumber: z.string().min(10, {
+      message: 'Please enter a valid phone number.',
     }),
     password: z.string().min(6, {
       message: 'Password must be at least 6 characters.',
@@ -45,32 +56,94 @@ const formSchema = z
     path: ['confirmPassword'],
   });
 
+type Location = {
+  lat: number;
+  lng: number;
+} | null;
+
 export default function SignupPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const [location, setLocation] = useState<Location>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setLocationError(null);
+        },
+        (error) => {
+          setLocationError('Could not get location. Please enable location services.');
+          toast({
+            variant: "destructive",
+            title: "Location Error",
+            description: "Could not get location. Please enable location services in your browser.",
+          });
+        }
+      );
+    } else {
+      setLocationError('Geolocation is not supported by your browser.');
+    }
+  }, [toast]);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
+      username: '',
+      firstname: '',
+      lastname: '',
       email: '',
+      phoneNumber: '',
       password: '',
       confirmPassword: '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('Signup attempt with:', values);
-    toast({
-      title: 'Account Creation Submitted',
-      description: "This is a demo. No account has been created.",
-    });
-    // router.push('/');
+    if (!location) {
+        toast({
+            variant: "destructive",
+            title: "Registration Failed",
+            description: locationError || "Location is required for registration.",
+        });
+        return;
+    }
+
+    const registrationData = {
+        username: values.username,
+        firstname: values.firstname,
+        lastname: values.lastname,
+        email: values.email,
+        password: values.password,
+        phoneNumber: values.phoneNumber,
+        location: location,
+    };
+
+    try {
+      await register(registrationData);
+      toast({
+        title: 'Registration Successful',
+        description: "Your account has been created. Please log in.",
+      });
+      router.push('/login');
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Registration Failed",
+            description: error.message || "An unexpected error occurred.",
+        });
+    }
   }
 
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center py-8">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Sign Up</CardTitle>
           <CardDescription>
@@ -80,26 +153,90 @@ export default function SignupPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Jane Doe"
-                          {...field}
-                          className="pl-10"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                 <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="johndoe"
+                            {...field}
+                            className="pl-10"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="123-456-7890"
+                            {...field}
+                            className="pl-10"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+               <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="firstname"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                        <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                            placeholder="John"
+                            {...field}
+                            className="pl-10"
+                            />
+                        </div>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="lastname"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                        <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                            placeholder="Doe"
+                            {...field}
+                            className="pl-10"
+                            />
+                        </div>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+               </div>
               <FormField
                 control={form.control}
                 name="email"
