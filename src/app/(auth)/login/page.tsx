@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Lock } from 'lucide-react';
+import { login } from '@/lib/auth';
 
 const formSchema = z.object({
   email: z.string().email({
@@ -49,16 +50,25 @@ export default function LoginPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('Login attempt with:', values);
-    toast({
-      title: 'Login Submitted',
-      description: 'This is a demo. No actual login has occurred.',
-    });
-    // router.push('/');
+    try {
+      await login(values.email, values.password);
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+      });
+      router.push('/dashboard');
+      router.refresh(); // This will trigger a re-render of the layout to update user state
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message || 'An unexpected error occurred.',
+      });
+    }
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
