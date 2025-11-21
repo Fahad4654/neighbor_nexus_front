@@ -69,7 +69,7 @@ export default function SignupPage() {
 
   const LocationPicker = useMemo(() => dynamic(() => import('@/components/LocationPicker'), {
     ssr: false,
-    loading: () => <p>Loading map...</p>
+    loading: () => <div className="w-full h-full flex items-center justify-center"><p>Loading map...</p></div>
   }), []);
 
 

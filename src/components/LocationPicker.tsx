@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -18,11 +18,9 @@ type LocationPickerProps = {
 // === Keeps map centered when location changes ===
 function MapUpdater({ position }: { position: LatLngExpression }) {
   const map = useMap();
-
   useEffect(() => {
     map.setView(position);
   }, [map, position]);
-
   return null;
 }
 
@@ -43,8 +41,7 @@ function DraggableMarker({
   const eventHandlers = useMemo(
     () => ({
       dragend(e: any) {
-        const newPos = e.target.getLatLng();
-        onLocationChange(newPos);
+        onLocationChange(e.target.getLatLng());
       },
     }),
     [onLocationChange]
@@ -62,18 +59,23 @@ export default function LocationPicker({
   location,
   onLocationChange,
 }: LocationPickerProps) {
-  // Prevent SSR hydration issues
-  if (typeof window === "undefined") return null;
+  const [mounted, setMounted] = useState(false);
+
+  // FIXES Leaflet: Prevents double initialization in Next.js
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <div className="w-full h-full">Loading map...</div>;
 
   const position: LatLngExpression = location
     ? [location.lat, location.lng]
     : [51.505, -0.09];
 
   return (
-    // Key ensures MapContainer doesn't double-initialize
-    <div key="leaflet-map" className="h-full w-full">
+    <div className="h-full w-full">
       <MapContainer
-        center={[51.505, -0.09]} // static initial center (Leaflet requirement)
+        center={position}
         zoom={13}
         scrollWheelZoom={false}
         style={{ height: "100%", width: "100%" }}
