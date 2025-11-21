@@ -5,8 +5,6 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -27,9 +25,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
 import { Mail, Lock, User } from 'lucide-react';
-import { errorEmitter } from '@/firebase/error-emitter';
 
 const formSchema = z
   .object({
@@ -52,8 +48,6 @@ const formSchema = z
 export default function SignupPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const auth = useAuth();
-  const firestore = useFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,46 +60,12 @@ export default function SignupPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!auth || !firestore) return;
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        values.email,
-        values.password
-      );
-      const user = userCredential.user;
-
-      await updateProfile(user, { displayName: values.name });
-
-      const userProfile = {
-        name: values.name,
-        email: values.email,
-        createdAt: new Date(),
-      };
-
-      const userDocRef = doc(firestore, 'users', user.uid);
-      setDoc(userDocRef, userProfile).catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: userDocRef.path,
-          operation: 'create',
-          requestResourceData: userProfile,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      });
-
-      toast({
-        title: 'Account Created',
-        description: "You've successfully created your account.",
-      });
-      router.push('/');
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Sign Up Failed',
-        description: error.message,
-      });
-    }
+    console.log('Signup attempt with:', values);
+    toast({
+      title: 'Account Creation Submitted',
+      description: "This is a demo. No account has been created.",
+    });
+    // router.push('/');
   }
 
   return (
