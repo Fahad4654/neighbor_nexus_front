@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 
 import { Button } from '@/components/ui/button';
@@ -30,26 +30,24 @@ import { useToast } from '@/hooks/use-toast';
 import { Mail, Lock, User, Phone, MapPin } from 'lucide-react';
 import { register } from '@/lib/auth';
 
+// Dynamic import of LocationPicker
+const LocationPicker = dynamic(() => import('@/components/LocationPicker'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center">
+      <p>Loading map...</p>
+    </div>
+  ),
+});
+
 const formSchema = z
   .object({
-    username: z.string().min(2, {
-      message: 'Username must be at least 2 characters.',
-    }),
-    firstname: z.string().min(2, {
-      message: 'First name must be at least 2 characters.',
-    }),
-    lastname: z.string().min(2, {
-      message: 'Last name must be at least 2 characters.',
-    }),
-    email: z.string().email({
-      message: 'Please enter a valid email address.',
-    }),
-    phoneNumber: z.string().min(10, {
-      message: 'Please enter a valid phone number.',
-    }),
-    password: z.string().min(6, {
-      message: 'Password must be at least 6 characters.',
-    }),
+    username: z.string().min(2, { message: 'Username must be at least 2 characters.' }),
+    firstname: z.string().min(2, { message: 'First name must be at least 2 characters.' }),
+    lastname: z.string().min(2, { message: 'Last name must be at least 2 characters.' }),
+    email: z.string().email({ message: 'Please enter a valid email address.' }),
+    phoneNumber: z.string().min(10, { message: 'Please enter a valid phone number.' }),
+    password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -57,21 +55,12 @@ const formSchema = z
     path: ['confirmPassword'],
   });
 
-type Location = {
-  lat: number;
-  lng: number;
-} | null;
+type Location = { lat: number; lng: number } | null;
 
 export default function SignupPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [location, setLocation] = useState<Location>({ lat: 51.505, lng: -0.09 });
-
-  const LocationPicker = useMemo(() => dynamic(() => import('@/components/LocationPicker'), {
-    ssr: false,
-    loading: () => <div className="w-full h-full flex items-center justify-center"><p>Loading map...</p></div>
-  }), []);
-
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -88,22 +77,22 @@ export default function SignupPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!location) {
-        toast({
-            variant: "destructive",
-            title: "Registration Failed",
-            description: "Location is required for registration. Please select a location on the map.",
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: "Location is required for registration. Please select a location on the map.",
+      });
+      return;
     }
 
     const registrationData = {
-        username: values.username,
-        firstname: values.firstname,
-        lastname: values.lastname,
-        email: values.email,
-        password: values.password,
-        phoneNumber: values.phoneNumber,
-        location: location,
+      username: values.username,
+      firstname: values.firstname,
+      lastname: values.lastname,
+      email: values.email,
+      password: values.password,
+      phoneNumber: values.phoneNumber,
+      location: location,
     };
 
     try {
@@ -114,11 +103,11 @@ export default function SignupPage() {
       });
       router.push('/login');
     } catch (error: any) {
-        toast({
-            variant: "destructive",
-            title: "Registration Failed",
-            description: error.message || "An unexpected error occurred.",
-        });
+      toast({
+        variant: "destructive",
+        title: "Registration Failed",
+        description: error.message || "An unexpected error occurred.",
+      });
     }
   }
 
@@ -136,6 +125,7 @@ export default function SignupPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-4">
+                  {/* Username */}
                   <FormField
                     control={form.control}
                     name="username"
@@ -145,17 +135,15 @@ export default function SignupPage() {
                         <FormControl>
                           <div className="relative">
                             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="johndoe"
-                              {...field}
-                              className="pl-10"
-                            />
+                            <Input placeholder="johndoe" {...field} className="pl-10" />
                           </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* Phone */}
                   <FormField
                     control={form.control}
                     name="phoneNumber"
@@ -165,17 +153,15 @@ export default function SignupPage() {
                         <FormControl>
                           <div className="relative">
                             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="123-456-7890"
-                              {...field}
-                              className="pl-10"
-                            />
+                            <Input placeholder="123-456-7890" {...field} className="pl-10" />
                           </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* First & Last Name */}
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -204,6 +190,8 @@ export default function SignupPage() {
                       )}
                     />
                   </div>
+
+                  {/* Email */}
                   <FormField
                     control={form.control}
                     name="email"
@@ -213,17 +201,15 @@ export default function SignupPage() {
                         <FormControl>
                           <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="name@example.com"
-                              {...field}
-                              className="pl-10"
-                            />
+                            <Input placeholder="name@example.com" {...field} className="pl-10" />
                           </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* Password */}
                   <FormField
                     control={form.control}
                     name="password"
@@ -233,18 +219,15 @@ export default function SignupPage() {
                         <FormControl>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              type="password"
-                              placeholder="••••••••"
-                              {...field}
-                              className="pl-10"
-                            />
+                            <Input type="password" placeholder="••••••••" {...field} className="pl-10" />
                           </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {/* Confirm Password */}
                   <FormField
                     control={form.control}
                     name="confirmPassword"
@@ -254,12 +237,7 @@ export default function SignupPage() {
                         <FormControl>
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              type="password"
-                              placeholder="••••••••"
-                              {...field}
-                              className="pl-10"
-                            />
+                            <Input type="password" placeholder="••••••••" {...field} className="pl-10" />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -267,14 +245,17 @@ export default function SignupPage() {
                     )}
                   />
                 </div>
-                <div className="space-y-2">
-                    <FormLabel>Select Your Location</FormLabel>
-                    <div className="h-[420px] w-full rounded-md overflow-hidden border">
-                      <LocationPicker location={location} onLocationChange={setLocation} />
-                    </div>
-                     <p className="text-sm text-muted-foreground flex items-center gap-1 pt-1"><MapPin className="h-3 w-3"/> Drag the marker to set your precise location.</p>
-                </div>
 
+                {/* Location Picker */}
+                <div className="space-y-2">
+                  <FormLabel>Select Your Location</FormLabel>
+                  <div className="h-[420px] w-full rounded-md overflow-hidden border">
+                    <LocationPicker location={location} onLocationChange={setLocation} />
+                  </div>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1 pt-1">
+                    <MapPin className="h-3 w-3" /> Drag the marker to set your precise location.
+                  </p>
+                </div>
               </div>
 
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 mt-4">

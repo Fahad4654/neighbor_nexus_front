@@ -1,30 +1,26 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  useMap,
-  useMapEvents,
-} from "react-leaflet";
-import { LatLngExpression } from "leaflet";
+import { useEffect } from "react";
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
+import type { LatLngExpression, LatLng } from "leaflet";
 
 type LocationPickerProps = {
   location: { lat: number; lng: number } | null;
   onLocationChange: (loc: { lat: number; lng: number }) => void;
 };
 
-// === Keeps map centered when location changes ===
+// Component to update map center when position changes
 function MapUpdater({ position }: { position: LatLngExpression }) {
   const map = useMap();
+
   useEffect(() => {
-    map.setView(position);
-  }, [map, position]);
+    map.setView(position, map.getZoom());
+  }, [position, map]);
+
   return null;
 }
 
-// === Draggable + clickable marker ===
+// Draggable marker that calls onLocationChange on drag or click
 function DraggableMarker({
   position,
   onLocationChange,
@@ -34,18 +30,17 @@ function DraggableMarker({
 }) {
   useMapEvents({
     click(e) {
-      onLocationChange(e.latlng);
+      onLocationChange({ lat: e.latlng.lat, lng: e.latlng.lng });
     },
   });
 
-  const eventHandlers = useMemo(
-    () => ({
-      dragend(e: any) {
-        onLocationChange(e.target.getLatLng());
-      },
-    }),
-    [onLocationChange]
-  );
+  const eventHandlers = {
+    dragend(e: any) {
+      const marker = e.target;
+      const latlng: LatLng = marker.getLatLng();
+      onLocationChange({ lat: latlng.lat, lng: latlng.lng });
+    },
+  };
 
   return (
     <>
@@ -59,18 +54,13 @@ export default function LocationPicker({
   location,
   onLocationChange,
 }: LocationPickerProps) {
-  const [mounted, setMounted] = useState(false);
+  // Default position if no location is provided
+  const position: LatLngExpression = location ?? [51.505, -0.09];
 
-  // FIXES Leaflet: Prevents double initialization in Next.js
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return <div className="w-full h-full flex items-center justify-center bg-muted"><p>Loading map...</p></div>;
-
-  const position: LatLngExpression = location
-    ? [location.lat, location.lng]
-    : [51.505, -0.09];
+  // Key for MapContainer to force re-initialization if position changes
+  const mapKey = Array.isArray(position)
+    ? `${position[0]}-${position[1]}`
+    : `${position.lat}-${position.lng}`;
 
   return (
     <div className="h-full w-full">
@@ -79,13 +69,10 @@ export default function LocationPicker({
         zoom={13}
         scrollWheelZoom={false}
         style={{ height: "100%", width: "100%" }}
+        key={mapKey} // prevents "Map container already initialized"
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-        <DraggableMarker
-          position={position}
-          onLocationChange={onLocationChange}
-        />
+        <DraggableMarker position={position} onLocationChange={onLocationChange} />
       </MapContainer>
     </div>
   );
