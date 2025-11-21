@@ -23,7 +23,7 @@ export function Nav() {
   const router = useRouter();
 
   const navItems = [
-    { href: '/', label: 'Dashboard', icon: Home, show: 'always' },
+    { href: '/dashboard', label: 'Dashboard', icon: Home, show: 'always' },
     { href: '/tools', label: 'Tools', icon: Wrench, show: 'always' },
     { href: '/skills', label: 'Skills', icon: Lightbulb, show: 'always' },
     { href: '/transactions', label: 'Transactions', icon: ArrowRightLeft, show: 'always' },

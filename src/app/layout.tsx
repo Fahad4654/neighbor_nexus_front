@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { AppShell } from '@/components/AppShell';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
@@ -24,7 +23,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AppShell>{children}</AppShell>
+        {children}
         <Toaster />
       </body>
     </html>

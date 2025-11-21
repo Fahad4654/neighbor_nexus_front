@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/dashboard" className="flex items-center gap-2">
             <Handshake className="h-8 w-8 text-primary" />
             <h1 className="text-xl font-bold font-headline text-foreground">Neighbor Nexus</h1>
           </Link>
