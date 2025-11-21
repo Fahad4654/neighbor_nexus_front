@@ -9,8 +9,10 @@ import React, {
 } from 'react';
 import { initializeFirebase } from '.';
 import { FirebaseProvider, type FirebaseContextType } from './provider';
+import Loading from '@/app/loading';
 
-const FirebaseClientContext = createContext<FirebaseContextType | null>(null);
+// This context is now only used to check if the client provider has initialized.
+const FirebaseClientContext = createContext<boolean>(false);
 
 export function FirebaseClientProvider({
   children,
@@ -24,13 +26,14 @@ export function FirebaseClientProvider({
     setFirebase(firebaseInstances);
   }, []);
 
+  if (!firebase) {
+    // You can return a loading spinner or null here
+    return <Loading />;
+  }
+
   return (
-    <FirebaseClientContext.Provider value={firebase}>
-      {firebase ? (
-        <FirebaseProvider {...firebase}>{children}</FirebaseProvider>
-      ) : (
-        <>{children}</>
-      )}
+    <FirebaseClientContext.Provider value={true}>
+      <FirebaseProvider {...firebase}>{children}</FirebaseProvider>
     </FirebaseClientContext.Provider>
   );
 }
