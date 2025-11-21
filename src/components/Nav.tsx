@@ -29,8 +29,8 @@ export function Nav() {
     setUser(getLoggedInUser());
   }, []);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setUser(null);
     router.push('/login');
     router.refresh();

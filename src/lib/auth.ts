@@ -1,4 +1,3 @@
-
 export async function login(identifier: string, password: string): Promise<any> {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (!backendUrl) {
@@ -32,7 +31,27 @@ export async function login(identifier: string, password: string): Promise<any> 
   return data;
 }
 
-export function logout() {
+export async function logout() {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (!backendUrl) {
+    console.error('Backend URL is not configured');
+  }
+
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (refreshToken && backendUrl) {
+    try {
+      await fetch(`${backendUrl}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch (error) {
+      console.error('Logout failed on the server:', error);
+    }
+  }
+
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
@@ -54,9 +73,6 @@ export async function refreshToken(): Promise<any> {
 
   const storedRefreshToken = localStorage.getItem('refreshToken');
   if (!storedRefreshToken) {
-    // No refresh token available, so we can't refresh.
-    // This could mean the user is logged out.
-    // We'll let the caller handle this case.
     return Promise.reject('No refresh token found');
   }
 
@@ -72,8 +88,7 @@ export async function refreshToken(): Promise<any> {
     const data = await response.json();
 
     if (!response.ok) {
-      // If refresh fails, log the user out as the token is likely invalid.
-      logout();
+      await logout();
       window.location.href = '/login';
       throw new Error(data.message || 'Session expired. Please log in again.');
     }
@@ -84,7 +99,7 @@ export async function refreshToken(): Promise<any> {
 
     return data;
   } catch (error) {
-    logout();
+    await logout();
     window.location.href = '/login';
     throw error;
   }
