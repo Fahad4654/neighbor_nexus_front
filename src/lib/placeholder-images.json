@@ -1,3 +1,76 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "user-avatar-1",
+      "description": "Avatar for John Smith",
+      "imageUrl": "https://images.unsplash.com/photo-1624395213081-608f51284ddd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtYW4lMjBmYWNlfGVufDB8fHx8MTc2MzY2NjkyM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man face"
+    },
+    {
+      "id": "user-avatar-2",
+      "description": "Avatar for Emily White",
+      "imageUrl": "https://images.unsplash.com/photo-1633934214315-d1a99cc349d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx3b21hbiUyMGZhY2V8ZW58MHx8fHwxNzYzNjg4NjcxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman face"
+    },
+    {
+      "id": "user-avatar-3",
+      "description": "Avatar for Michael Brown",
+      "imageUrl": "https://images.unsplash.com/photo-1725866546799-4cc16f6cba23?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYW4lMjBzbWlsaW5nfGVufDB8fHx8MTc2MzczMTA1MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man smiling"
+    },
+    {
+      "id": "user-avatar-4",
+      "description": "Avatar for Sarah Green",
+      "imageUrl": "https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx3b21hbiUyMHNtaWxpbmd8ZW58MHx8fHwxNzYzNzI1NTczfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman smiling"
+    },
+    {
+      "id": "tool-drill",
+      "description": "A heavy duty hammer drill",
+      "imageUrl": "https://images.unsplash.com/photo-1592054286113-649ba108e968?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwb3dlciUyMGRyaWxsfGVufDB8fHx8MTc2Mzc0NTUzMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "power drill"
+    },
+    {
+      "id": "tool-ladder",
+      "description": "An extension ladder",
+      "imageUrl": "https://images.unsplash.com/photo-1635360949021-5cc5d2db5691?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxsYWRkZXIlMjBsZWFuaW5nfGVufDB8fHx8MTc2Mzc1NjI3MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ladder leaning"
+    },
+    {
+      "id": "tool-mower",
+      "description": "A lawn mower on grass",
+      "imageUrl": "https://images.unsplash.com/photo-1637269820082-d4ad72e2ad75?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsYXduJTIwbW93ZXJ8ZW58MHx8fHwxNzYzNzU2MjcwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lawn mower"
+    },
+    {
+      "id": "tool-washer",
+      "description": "An electric pressure washer",
+      "imageUrl": "https://images.unsplash.com/photo-1548989740-57e34f4d9a18?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwcmVzc3VyZSUyMHdhc2hlcnxlbnwwfHx8fDE3NjM2NTgyOTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pressure washer"
+    },
+    {
+      "id": "skill-gardening",
+      "description": "A beautiful garden",
+      "imageUrl": "https://images.unsplash.com/photo-1615094401770-713fecd4695a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmbG93ZXIlMjBnYXJkZW58ZW58MHx8fHwxNzYzNzE0NTE2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "flower garden"
+    },
+    {
+      "id": "skill-plumbing",
+      "description": "Pipes under a sink",
+      "imageUrl": "https://images.unsplash.com/photo-1585351738104-fce103eca1b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzaW5rJTIwcGlwZXN8ZW58MHx8fHwxNzYzNjc3NTE4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sink pipes"
+    },
+    {
+      "id": "skill-carpentry",
+      "description": "A person doing carpentry",
+      "imageUrl": "https://images.unsplash.com/photo-1619759247130-4e7a70f2fe27?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXJwZW50cnklMjB3b29kfGVufDB8fHx8MTc2MzczODA5MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "carpentry wood"
+    },
+    {
+      "id": "skill-it",
+      "description": "A computer server room",
+      "imageUrl": "https://images.unsplash.com/flagged/photo-1579274216947-86eaa4b00475?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjb21wdXRlciUyMG5ldHdvcmt8ZW58MHx8fHwxNzYzNjUxNzg1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "computer network"
+    }
+  ]
 }
