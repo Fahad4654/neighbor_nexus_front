@@ -66,7 +66,7 @@ export default function LocationPicker({
     setMounted(true);
   }, []);
 
-  if (!mounted) return <div className="w-full h-full">Loading map...</div>;
+  if (!mounted) return <div className="w-full h-full flex items-center justify-center bg-muted"><p>Loading map...</p></div>;
 
   const position: LatLngExpression = location
     ? [location.lat, location.lng]
