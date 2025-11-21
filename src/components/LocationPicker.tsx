@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { useMemo, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import { LatLngExpression } from 'leaflet';
 
 type LocationPickerProps = {
@@ -9,8 +9,15 @@ type LocationPickerProps = {
   onLocationChange: (location: { lat: number; lng: number }) => void;
 };
 
-function DraggableMarker({ onLocationChange, position }: { onLocationChange: (location: { lat: number; lng: number }) => void, position: LatLngExpression }) {
+function MapUpdater({ position }: { position: LatLngExpression }) {
+    const map = useMap();
+    useEffect(() => {
+        map.setView(position, map.getZoom());
+    }, [position, map]);
+    return null;
+}
 
+function DraggableMarker({ onLocationChange, position }: { onLocationChange: (location: { lat: number; lng: number }) => void, position: LatLngExpression }) {
   const map = useMapEvents({
     click(e) {
       onLocationChange(e.latlng);
@@ -27,11 +34,14 @@ function DraggableMarker({ onLocationChange, position }: { onLocationChange: (lo
   );
 
   return (
-    <Marker
-      draggable={true}
-      eventHandlers={eventHandlers}
-      position={position}
-    ></Marker>
+    <>
+      <MapUpdater position={position} />
+      <Marker
+        draggable={true}
+        eventHandlers={eventHandlers}
+        position={position}
+      ></Marker>
+    </>
   );
 }
 
