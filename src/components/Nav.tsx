@@ -7,6 +7,7 @@ import {
   Lightbulb,
   ArrowRightLeft,
   ShieldCheck,
+  LogIn
 } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from './ui/sidebar';
 import Link from 'next/link';
@@ -18,6 +19,7 @@ const navItems = [
   { href: '/skills', label: 'Skills', icon: Lightbulb },
   { href: '/transactions', label: 'Transactions', icon: ArrowRightLeft },
   { href: '/verify', label: 'Verify', icon: ShieldCheck },
+  { href: '/login', label: 'Login', icon: LogIn },
 ];
 
 export function Nav() {
