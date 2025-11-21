@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/AppShell';
 import { getLoggedInUser } from '@/lib/auth';
@@ -12,15 +12,20 @@ export default function AppLayout({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
-  const user = getLoggedInUser();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    const loggedInUser = getLoggedInUser();
+    if (!loggedInUser) {
       router.push('/login');
+    } else {
+      setUser(loggedInUser);
+      setLoading(false);
     }
-  }, [user, router]);
+  }, [router]);
 
-  if (!user) {
+  if (loading) {
     return <Loading />;
   }
 
