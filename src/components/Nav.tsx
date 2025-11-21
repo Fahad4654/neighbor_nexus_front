@@ -27,15 +27,19 @@ export function Nav() {
     <SidebarMenu>
       {navItems.map((item) => (
         <SidebarMenuItem key={item.href}>
-          <Link href={item.href} legacyBehavior passHref>
-            <SidebarMenuButton
-              isActive={pathname === item.href}
-              className={cn(pathname === item.href && "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary")}
-            >
+          <SidebarMenuButton
+            asChild
+            isActive={pathname === item.href}
+            className={cn(
+              pathname === item.href &&
+                'bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary'
+            )}
+          >
+            <Link href={item.href}>
               <item.icon />
               <span>{item.label}</span>
-            </SidebarMenuButton>
-          </Link>
+            </Link>
+          </SidebarMenuButton>
         </SidebarMenuItem>
       ))}
     </SidebarMenu>
