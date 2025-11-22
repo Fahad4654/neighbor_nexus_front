@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
 import { Button } from '@/components/ui/button';
@@ -29,14 +29,13 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Lock, User, Phone, MapPin } from 'lucide-react';
 import { register } from '@/lib/auth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Dynamic import of LocationPicker
 const LocationPicker = dynamic(() => import('@/components/LocationPicker'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center">
-      <p>Loading map...</p>
-    </div>
+    <Skeleton className="w-full h-[420px] rounded-md" />
   ),
 });
 
@@ -60,7 +59,28 @@ type Location = { lat: number; lng: number } | null;
 export default function SignupPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const [location, setLocation] = useState<Location>({ lat: 51.505, lng: -0.09 });
+  const [location, setLocation] = useState<Location>(null);
+
+  useEffect(() => {
+    // Get user's current location to initialize the map
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        () => {
+          // Fallback to a default location if user denies permission
+          setLocation({ lat: 51.505, lng: -0.09 });
+        }
+      );
+    } else {
+      // Fallback for browsers that don't support geolocation
+      setLocation({ lat: 51.505, lng: -0.09 });
+    }
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -80,7 +100,7 @@ export default function SignupPage() {
       toast({
         variant: "destructive",
         title: "Registration Failed",
-        description: "Location is required for registration. Please select a location on the map.",
+        description: "Location is required. Please select a location on the map.",
       });
       return;
     }
@@ -253,7 +273,7 @@ export default function SignupPage() {
                     <LocationPicker location={location} onLocationChange={setLocation} />
                   </div>
                   <p className="text-sm text-muted-foreground flex items-center gap-1 pt-1">
-                    <MapPin className="h-3 w-3" /> Drag the marker to set your precise location.
+                    <MapPin className="h-3 w-3" /> Drag the marker or click on the map to set your location.
                   </p>
                 </div>
               </div>
