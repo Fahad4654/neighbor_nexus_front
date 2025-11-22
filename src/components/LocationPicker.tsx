@@ -57,6 +57,11 @@ function DraggableMarker({
     },
   });
 
+  // Effect to sync marker position if the external `initialPosition` prop changes.
+  useEffect(() => {
+    setPosition(initialPosition);
+  }, [initialPosition]);
+
   return <Marker draggable eventHandlers={eventHandlers} position={position} />;
 }
 
