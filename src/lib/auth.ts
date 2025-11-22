@@ -37,12 +37,19 @@ export async function register(userData: any): Promise<any> {
       throw new Error('Backend URL is not configured');
     }
   
+    // The API expects a location, but we are not collecting it anymore.
+    // We'll send a default or null location.
+    const payload = {
+      ...userData,
+      location: { lat: 0, lng: 0 } 
+    };
+
     const response = await fetch(`${backendUrl}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userData),
+      body: JSON.stringify(payload),
     });
   
     const data = await response.json();

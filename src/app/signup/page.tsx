@@ -5,8 +5,6 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -27,17 +25,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Lock, User, Phone, MapPin } from 'lucide-react';
+import { Mail, Lock, User, Phone } from 'lucide-react';
 import { register } from '@/lib/auth';
-import { Skeleton } from '@/components/ui/skeleton';
-
-// Dynamic import of LocationPicker
-const LocationPicker = dynamic(() => import('@/components/LocationPicker'), {
-  ssr: false,
-  loading: () => (
-    <Skeleton className="w-full h-[420px] rounded-md" />
-  ),
-});
 
 const formSchema = z
   .object({
@@ -54,33 +43,9 @@ const formSchema = z
     path: ['confirmPassword'],
   });
 
-type Location = { lat: number; lng: number } | null;
-
 export default function SignupPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const [location, setLocation] = useState<Location>(null);
-
-  useEffect(() => {
-    // Get user's current location to initialize the map
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        () => {
-          // Fallback to a default location if user denies permission
-          setLocation({ lat: 51.505, lng: -0.09 });
-        }
-      );
-    } else {
-      // Fallback for browsers that don't support geolocation
-      setLocation({ lat: 51.505, lng: -0.09 });
-    }
-  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -96,15 +61,6 @@ export default function SignupPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!location) {
-      toast({
-        variant: "destructive",
-        title: "Registration Failed",
-        description: "Location is required. Please select a location on the map.",
-      });
-      return;
-    }
-
     const registrationData = {
       username: values.username,
       firstname: values.firstname,
@@ -112,7 +68,6 @@ export default function SignupPage() {
       email: values.email,
       password: values.password,
       phoneNumber: values.phoneNumber,
-      location: location,
     };
 
     try {
@@ -133,7 +88,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center py-8">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle className="text-2xl">Sign Up</CardTitle>
           <CardDescription>
@@ -143,122 +98,66 @@ export default function SignupPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  {/* Username */}
+              <div className="space-y-4">
+                {/* Username */}
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="johndoe" {...field} className="pl-10" />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Phone */}
+                <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="123-456-7890" {...field} className="pl-10" />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* First & Last Name */}
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="username"
+                    name="firstname"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username</FormLabel>
+                        <FormLabel>First Name</FormLabel>
                         <FormControl>
-                          <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="johndoe" {...field} className="pl-10" />
-                          </div>
+                          <Input placeholder="John" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  {/* Phone */}
                   <FormField
                     control={form.control}
-                    name="phoneNumber"
+                    name="lastname"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
+                        <FormLabel>Last Name</FormLabel>
                         <FormControl>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="123-456-7890" {...field} className="pl-10" />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* First & Last Name */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="firstname"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastname"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  {/* Email */}
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="name@example.com" {...field} className="pl-10" />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Password */}
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input type="password" placeholder="••••••••" {...field} className="pl-10" />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Confirm Password */}
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input type="password" placeholder="••••••••" {...field} className="pl-10" />
-                          </div>
+                          <Input placeholder="Doe" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -266,16 +165,59 @@ export default function SignupPage() {
                   />
                 </div>
 
-                {/* Location Picker */}
-                <div className="space-y-2">
-                  <FormLabel>Select Your Location</FormLabel>
-                  <div className="h-[420px] w-full rounded-md overflow-hidden border">
-                    <LocationPicker location={location} onLocationChange={setLocation} />
-                  </div>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1 pt-1">
-                    <MapPin className="h-3 w-3" /> Drag the marker or click on the map to set your location.
-                  </p>
-                </div>
+                {/* Email */}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="name@example.com" {...field} className="pl-10" />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Password */}
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input type="password" placeholder="••••••••" {...field} className="pl-10" />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Confirm Password */}
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input type="password" placeholder="••••••••" {...field} className="pl-10" />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 mt-4">
