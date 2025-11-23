@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
+import { GoogleMap, useLoadScript, Marker, Autocomplete } from '@react-google-maps/api';
 import { Skeleton } from './ui/skeleton';
 import { Button } from './ui/button';
-import { LocateFixed } from 'lucide-react';
+import { LocateFixed, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from './ui/input';
 
 const mapContainerStyle = {
   width: '100%',
@@ -31,6 +32,7 @@ export default function GoogleMapPicker({ onLocationChange }: GoogleMapPickerPro
 
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
   const mapRef = useRef<google.maps.Map | null>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const { toast } = useToast();
 
   const onLoad = useCallback((map: google.maps.Map) => {
@@ -44,6 +46,7 @@ export default function GoogleMapPicker({ onLocationChange }: GoogleMapPickerPro
   const handleLocationUpdate = (newPos: { lat: number; lng: number }) => {
     setMarkerPosition(newPos);
     onLocationChange(newPos);
+    mapRef.current?.panTo(newPos);
   };
 
   const onMarkerDragEnd = useCallback((e: google.maps.MapMouseEvent) => {
@@ -73,7 +76,6 @@ export default function GoogleMapPicker({ onLocationChange }: GoogleMapPickerPro
             lng: position.coords.longitude,
           };
           handleLocationUpdate(newPos);
-          mapRef.current?.panTo(newPos);
           mapRef.current?.setZoom(15);
         },
         () => {
@@ -93,6 +95,24 @@ export default function GoogleMapPicker({ onLocationChange }: GoogleMapPickerPro
     }
   };
 
+  const onAutocompleteLoad = (autocomplete: google.maps.places.Autocomplete) => {
+    autocompleteRef.current = autocomplete;
+  };
+
+  const onPlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      if (place.geometry && place.geometry.location) {
+        const newPos = {
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        };
+        handleLocationUpdate(newPos);
+        mapRef.current?.setZoom(15);
+      }
+    }
+  };
+
 
   if (loadError) {
     return <div className="flex items-center justify-center h-full">Error loading map</div>;
@@ -104,6 +124,19 @@ export default function GoogleMapPicker({ onLocationChange }: GoogleMapPickerPro
 
   return (
     <div className="relative h-full w-full">
+        <Autocomplete
+          onLoad={onAutocompleteLoad}
+          onPlaceChanged={onPlaceChanged}
+        >
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+            <Input
+              type="text"
+              placeholder="Search for a location"
+              className="absolute top-2 left-1/2 -translate-x-1/2 z-10 w-[90%] max-w-lg pl-10"
+            />
+          </div>
+        </Autocomplete>
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         zoom={8}
