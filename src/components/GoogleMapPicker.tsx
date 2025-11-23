@@ -14,8 +14,8 @@ const mapContainerStyle = {
 };
 
 const defaultCenter = {
-  lat: 34.052235,
-  lng: -118.243683,
+  lat: 23.8103,
+  lng: 90.4125,
 };
 
 const libraries: ('places' | 'drawing' | 'geometry' | 'localContext' | 'visualization')[] = ['places'];
