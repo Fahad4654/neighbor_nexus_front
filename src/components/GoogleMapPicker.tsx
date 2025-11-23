@@ -102,7 +102,7 @@ export default function GoogleMapPicker({ onLocationChange }: GoogleMapPickerPro
   const onPlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace();
-      if (place.geometry && place.geometry.location) {
+      if (place && place.geometry && place.geometry.location) {
         const newPos = {
           lat: place.geometry.location.lat(),
           lng: place.geometry.location.lng(),
