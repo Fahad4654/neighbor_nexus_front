@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -20,13 +22,13 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Lock, User, Phone } from 'lucide-react';
+import { Mail, Lock, User, Phone, MapPin } from 'lucide-react';
 import { register } from '@/lib/auth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z
   .object({
@@ -37,6 +39,10 @@ const formSchema = z
     phoneNumber: z.string().min(10, { message: 'Please enter a valid phone number.' }),
     password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
     confirmPassword: z.string(),
+    location: z.object({
+        lat: z.number(),
+        lng: z.number(),
+    }).optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -46,6 +52,13 @@ const formSchema = z
 export default function SignupPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+
+  const GoogleMapPicker = useMemo(() => dynamic(() => import('@/components/GoogleMapPicker'), {
+    ssr: false,
+    loading: () => <Skeleton className="h-[200px] w-full" />,
+  }), []);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,6 +74,15 @@ export default function SignupPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!location) {
+        toast({
+            variant: "destructive",
+            title: "Location Required",
+            description: "Please select your location on the map.",
+        });
+        return;
+    }
+
     const registrationData = {
       username: values.username,
       firstname: values.firstname,
@@ -68,6 +90,7 @@ export default function SignupPage() {
       email: values.email,
       password: values.password,
       phoneNumber: values.phoneNumber,
+      location: location,
     };
 
     try {
@@ -212,6 +235,29 @@ export default function SignupPage() {
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input type="password" placeholder="••••••••" {...field} className="pl-10" />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Location Picker */}
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Select Your Location
+                      </FormLabel>
+                      <FormDescription>
+                        Drag the marker to your approximate location.
+                      </FormDescription>
+                      <FormControl>
+                        <div className="h-[200px] w-full rounded-md border">
+                          <GoogleMapPicker onLocationChange={setLocation} />
                         </div>
                       </FormControl>
                       <FormMessage />
