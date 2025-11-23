@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,13 +27,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Lock } from 'lucide-react';
+import { User, Lock } from 'lucide-react';
 import { login, getLoggedInUser } from '@/lib/auth';
 import Loading from '@/app/loading';
 
 const formSchema = z.object({
-  email: z.string().email({
-    message: 'Please enter a valid email address.',
+  identifier: z.string().min(2, {
+    message: 'Please enter a valid email, username, or phone number.',
   }),
   password: z.string().min(6, {
     message: 'Password must be at least 6 characters.',
@@ -56,14 +57,14 @@ export default function LoginPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
+      identifier: '',
       password: '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await login(values.email, values.password);
+      await login(values.identifier, values.password);
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',
@@ -89,7 +90,7 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account.
+            Enter your credentials below to login to your account.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -97,13 +98,13 @@ export default function LoginPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="identifier"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Email, Username, or Phone</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           placeholder="name@example.com"
                           {...field}
