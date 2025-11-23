@@ -9,36 +9,20 @@ import {
   ShieldCheck,
   LogIn,
   UserPlus,
-  LogOut,
 } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from './ui/sidebar';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getLoggedInUser, logout } from '@/lib/auth';
+import { getLoggedInUser } from '@/lib/auth';
 
 export function Nav() {
   const pathname = usePathname();
-  const { toast } = useToast();
-  const router = useRouter();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     setUser(getLoggedInUser());
   }, []);
-
-  const handleLogout = async () => {
-    await logout();
-    setUser(null);
-    router.push('/login');
-    router.refresh();
-    toast({
-      title: 'Logged Out',
-      description: 'You have been successfully logged out.',
-    });
-  };
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home, show: 'loggedIn' },
@@ -71,14 +55,6 @@ export function Nav() {
           </SidebarMenuButton>
         </SidebarMenuItem>
       ))}
-       {user && (
-        <SidebarMenuItem>
-          <SidebarMenuButton onClick={handleLogout}>
-            <LogOut />
-            <span>Logout</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      )}
     </SidebarMenu>
   );
 }
