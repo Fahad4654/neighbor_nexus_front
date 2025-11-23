@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -26,7 +27,8 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Lock } from 'lucide-react';
-import { login } from '@/lib/auth';
+import { login, getLoggedInUser } from '@/lib/auth';
+import Loading from '@/app/loading';
 
 const formSchema = z.object({
   email: z.string().email({
@@ -40,6 +42,16 @@ const formSchema = z.object({
 export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const user = getLoggedInUser();
+    if (user) {
+      router.push('/dashboard');
+    } else {
+      setLoading(false);
+    }
+  }, [router]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,6 +77,10 @@ export default function LoginPage() {
         description: error.message || 'An unexpected error occurred.',
       });
     }
+  }
+
+  if (loading) {
+    return <Loading />;
   }
 
   return (
