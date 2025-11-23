@@ -14,7 +14,6 @@ import { Nav } from './Nav';
 import { UserNav } from './UserNav';
 import Link from 'next/link';
 import { Handshake } from 'lucide-react';
-import { Separator } from './ui/separator';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -43,9 +42,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <UserNav />
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          {children}
-        </main>
+        <div className="flex flex-1 flex-col overflow-auto">
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+            {children}
+          </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
