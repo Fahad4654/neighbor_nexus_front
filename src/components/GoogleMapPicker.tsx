@@ -124,19 +124,21 @@ export default function GoogleMapPicker({ onLocationChange }: GoogleMapPickerPro
 
   return (
     <div className="relative h-full w-full">
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 w-[90%] max-w-lg">
         <Autocomplete
           onLoad={onAutocompleteLoad}
           onPlaceChanged={onPlaceChanged}
         >
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-            <Input
-              type="text"
-              placeholder="Search for a location"
-              className="absolute top-2 left-1/2 -translate-x-1/2 z-10 w-[90%] max-w-lg pl-10"
-            />
-          </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search for a location"
+                className="w-full pl-10"
+              />
+            </div>
         </Autocomplete>
+      </div>
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         zoom={8}
