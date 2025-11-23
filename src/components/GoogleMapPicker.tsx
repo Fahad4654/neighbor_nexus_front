@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
 import { Skeleton } from './ui/skeleton';
+import { Button } from './ui/button';
+import { LocateFixed } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const mapContainerStyle = {
   width: '100%',
@@ -27,28 +30,68 @@ export default function GoogleMapPicker({ onLocationChange }: GoogleMapPickerPro
   });
 
   const [markerPosition, setMarkerPosition] = useState(defaultCenter);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const { toast } = useToast();
+
+  const onLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+  }, []);
+
+  const onUnmount = useCallback(() => {
+    mapRef.current = null;
+  }, []);
+
+  const handleLocationUpdate = (newPos: { lat: number; lng: number }) => {
+    setMarkerPosition(newPos);
+    onLocationChange(newPos);
+  };
 
   const onMarkerDragEnd = useCallback((e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
-      const newPos = {
+      handleLocationUpdate({
         lat: e.latLng.lat(),
         lng: e.latLng.lng(),
-      };
-      setMarkerPosition(newPos);
-      onLocationChange(newPos);
+      });
     }
   }, [onLocationChange]);
   
   const onMapClick = useCallback((e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
-      const newPos = {
+      handleLocationUpdate({
         lat: e.latLng.lat(),
         lng: e.latLng.lng(),
-      };
-      setMarkerPosition(newPos);
-      onLocationChange(newPos);
+      });
     }
   }, [onLocationChange]);
+
+  const goToCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const newPos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          handleLocationUpdate(newPos);
+          mapRef.current?.panTo(newPos);
+          mapRef.current?.setZoom(15);
+        },
+        () => {
+          toast({
+            variant: 'destructive',
+            title: 'Geolocation Error',
+            description: 'Could not get your current location. Please enable location services in your browser.',
+          });
+        }
+      );
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Geolocation Not Supported',
+        description: 'Your browser does not support geolocation.',
+      });
+    }
+  };
 
 
   if (loadError) {
@@ -60,21 +103,35 @@ export default function GoogleMapPicker({ onLocationChange }: GoogleMapPickerPro
   }
 
   return (
-    <GoogleMap
-      mapContainerStyle={mapContainerStyle}
-      zoom={8}
-      center={defaultCenter}
-      onClick={onMapClick}
-      options={{
-        streetViewControl: false,
-        mapTypeControl: false,
-      }}
-    >
-      <Marker
-        position={markerPosition}
-        draggable={true}
-        onDragEnd={onMarkerDragEnd}
-      />
-    </GoogleMap>
+    <div className="relative h-full w-full">
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        zoom={8}
+        center={defaultCenter}
+        onClick={onMapClick}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+        options={{
+          streetViewControl: false,
+          mapTypeControl: false,
+        }}
+      >
+        <Marker
+          position={markerPosition}
+          draggable={true}
+          onDragEnd={onMarkerDragEnd}
+        />
+      </GoogleMap>
+      <Button
+        type="button"
+        size="icon"
+        variant="secondary"
+        className="absolute bottom-4 right-4 z-10 bg-background/80 hover:bg-background"
+        onClick={goToCurrentLocation}
+        title="Go to my current location"
+      >
+        <LocateFixed className="h-5 w-5" />
+      </Button>
+    </div>
   );
 }
