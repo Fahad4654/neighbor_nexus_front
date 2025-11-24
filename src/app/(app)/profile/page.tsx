@@ -58,7 +58,10 @@ type User = {
   isAdmin?: boolean;
   isVerified?: boolean;
   rating_avg?: number | string;
-  geo_location?: { lat: number, lng: number };
+  geo_location?: {
+    type: 'Point';
+    coordinates: [number, number];
+  };
   createdBy?: string;
   updatedBy?: string;
   createdAt?: string;
@@ -214,6 +217,15 @@ export default function ProfilePage() {
   }
 
   const ratingValue = typeof user.rating_avg === 'string' ? parseFloat(user.rating_avg) : user.rating_avg || 0;
+  
+  const geoDisplayValue =
+    user.geo_location &&
+    user.geo_location.coordinates &&
+    Array.isArray(user.geo_location.coordinates) &&
+    user.geo_location.coordinates.length === 2
+      ? `${user.geo_location.coordinates[1].toFixed(4)}, ${user.geo_location.coordinates[0].toFixed(4)}`
+      : 'Not set';
+
 
   return (
     <div className="space-y-4">
@@ -313,7 +325,7 @@ export default function ProfilePage() {
                             <FormLabel>Geo Location</FormLabel>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={(user.geo_location && user.geo_location.lat && user.geo_location.lng) ? `${user.geo_location.lat.toFixed(4)}, ${user.geo_location.lng.toFixed(4)}` : 'Not set'} readOnly className="pl-10 bg-muted/50" />
+                                <Input value={geoDisplayValue} readOnly className="pl-10 bg-muted/50" />
                             </div>
                         </FormItem>
                         <InfoField icon={KeyRound} label="Created By" value={user.createdBy} />
