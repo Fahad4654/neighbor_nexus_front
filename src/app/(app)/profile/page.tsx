@@ -51,12 +51,53 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
+  const [avatarSrc, setAvatarSrc] = useState<string | undefined>(undefined);
   const { toast } = useToast();
 
   useEffect(() => {
     const userData = getLoggedInUser();
     setUser(userData);
   }, []);
+
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      if (user?.avatarUrl) {
+        const token = localStorage.getItem('accessToken');
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+        if (token && backendUrl) {
+          try {
+            const response = await fetch(`${backendUrl}${user.avatarUrl}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+
+            if (response.ok) {
+              const blob = await response.blob();
+              const objectUrl = URL.createObjectURL(blob);
+              setAvatarSrc(objectUrl);
+            } else {
+              setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
+            }
+          } catch (error) {
+            console.error('Failed to fetch avatar:', error);
+            setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
+          }
+        } else {
+           setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
+        }
+      }
+    };
+    
+    fetchAvatar();
+
+    return () => {
+      if (avatarSrc && avatarSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarSrc);
+      }
+    };
+  }, [user]);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -80,11 +121,8 @@ export default function ProfilePage() {
     }
 
     try {
-      // NOTE: This is a simulated API call.
-      // You will need to implement the actual backend logic for updating the user profile.
       await updateUserProfile(user.id, token, data);
       
-      // Update user data in local storage
       const updatedUser = { ...user, ...data };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
@@ -134,10 +172,6 @@ export default function ProfilePage() {
       </div>
     );
   }
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-  const avatarSrc = user.avatarUrl && backendUrl ? `${backendUrl}${user.avatarUrl}` : `https://avatar.vercel.sh/${user.username}.png`;
-
 
   return (
     <div className="space-y-4">

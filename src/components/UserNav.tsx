@@ -28,6 +28,7 @@ type User = {
 
 export function UserNav() {
   const [user, setUser] = useState<User | null>(null);
+  const [avatarSrc, setAvatarSrc] = useState<string | undefined>(undefined);
   const router = useRouter();
 
   useEffect(() => {
@@ -35,19 +36,17 @@ export function UserNav() {
       let loggedInUser = getLoggedInUser();
       
       if (loggedInUser) {
-        // Always fetch the latest profile info on component mount if not fully loaded
         if (!loggedInUser.avatarUrl) {
           const token = localStorage.getItem('accessToken');
           if (token) {
             try {
               const profile = await fetchUserProfile(loggedInUser.id, token);
-              // The profile object from your API contains bio, avatarUrl, address
               const fullUser = { ...loggedInUser, ...profile };
               localStorage.setItem('user', JSON.stringify(fullUser));
               setUser(fullUser);
             } catch (error) {
               console.error('Failed to fetch user profile:', error);
-              setUser(loggedInUser); // Fallback to user data without full profile
+              setUser(loggedInUser);
             }
           } else {
             setUser(loggedInUser);
@@ -60,7 +59,6 @@ export function UserNav() {
 
     updateUser();
 
-    // Listen for storage changes to update UI if login/logout happens in another tab
     const handleStorageChange = () => {
       updateUser();
     };
@@ -69,9 +67,53 @@ export function UserNav() {
 
   }, []);
 
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      if (user?.avatarUrl) {
+        const token = localStorage.getItem('accessToken');
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+        if (token && backendUrl) {
+          try {
+            const response = await fetch(`${backendUrl}${user.avatarUrl}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+
+            if (response.ok) {
+              const blob = await response.blob();
+              const objectUrl = URL.createObjectURL(blob);
+              setAvatarSrc(objectUrl);
+            } else {
+              // Fallback if image fetch fails
+              setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
+            }
+          } catch (error) {
+            console.error('Failed to fetch avatar:', error);
+            setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
+          }
+        } else {
+           setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
+        }
+      }
+    };
+    
+    fetchAvatar();
+
+    // Clean up the object URL when component unmounts or user changes
+    return () => {
+      if (avatarSrc && avatarSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarSrc);
+      }
+    };
+  }, [user]);
+
+
   const handleLogout = async () => {
     await logout();
     setUser(null);
+    setAvatarSrc(undefined);
     router.push('/login');
     router.refresh();
   };
@@ -83,9 +125,6 @@ export function UserNav() {
       </Button>
     );
   }
-  
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-  const avatarSrc = user.avatarUrl && backendUrl ? `${backendUrl}${user.avatarUrl}` : `https://avatar.vercel.sh/${user.username}.png`;
 
   return (
     <DropdownMenu>
