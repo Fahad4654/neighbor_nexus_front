@@ -313,7 +313,7 @@ export default function ProfilePage() {
                             <FormLabel>Geo Location</FormLabel>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.geo_location ? `${user.geo_location.lat.toFixed(4)}, ${user.geo_location.lng.toFixed(4)}` : 'Not set'} readOnly className="pl-10 bg-muted/50" />
+                                <Input value={(user.geo_location && user.geo_location.lat && user.geo_location.lng) ? `${user.geo_location.lat.toFixed(4)}, ${user.geo_location.lng.toFixed(4)}` : 'Not set'} readOnly className="pl-10 bg-muted/50" />
                             </div>
                         </FormItem>
                         <InfoField icon={KeyRound} label="Created By" value={user.createdBy} />
@@ -344,5 +344,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
