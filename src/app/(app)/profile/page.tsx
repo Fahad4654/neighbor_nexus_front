@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { format } from 'date-fns';
 
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,20 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getLoggedInUser, updateUserProfile } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Upload, User as UserIcon } from 'lucide-react';
+import { 
+  MapPin, 
+  Upload, 
+  User as UserIcon, 
+  Mail, 
+  Phone, 
+  ShieldCheck, 
+  Star,
+  Calendar,
+  KeyRound,
+  BadgeCheck,
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { StarRating } from '@/components/StarRating';
 
 type User = {
   id: string;
@@ -39,6 +53,15 @@ type User = {
   bio?: string;
   address?: string;
   avatarUrl?: string;
+  phoneNumber?: string;
+  isAdmin?: boolean;
+  isVerified?: boolean;
+  rating_avg?: number;
+  geo_location?: { lat: number, lng: number };
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 const profileFormSchema = z.object({
@@ -48,6 +71,20 @@ const profileFormSchema = z.object({
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
+const InfoField = ({ icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) => {
+    const Icon = icon;
+    return (
+        <FormItem>
+            <FormLabel>{label}</FormLabel>
+            <div className="relative">
+                <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input value={String(value ?? 'N/A')} readOnly className="pl-10 bg-muted/50" />
+            </div>
+        </FormItem>
+    );
+};
+
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -87,6 +124,8 @@ export default function ProfilePage() {
         } else {
            setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
         }
+      } else if (user?.username) {
+        setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
       }
     };
     
@@ -193,6 +232,16 @@ export default function ProfilePage() {
                     <div className="text-center space-y-1">
                         <CardTitle className="text-2xl">{user.firstname} {user.lastname}</CardTitle>
                     </div>
+                     {user.rating_avg && (
+                        <div className="flex items-center gap-2">
+                            <StarRating rating={user.rating_avg} readOnly />
+                            <span className="text-muted-foreground text-sm">({user.rating_avg.toFixed(1)})</span>
+                        </div>
+                    )}
+                    <div className="flex gap-2">
+                        {user.isVerified && <Badge variant="secondary"><BadgeCheck className="w-4 h-4 mr-1"/> Verified</Badge>}
+                        {user.isAdmin && <Badge variant="destructive">Admin</Badge>}
+                    </div>
                 </CardContent>
             </Card>
         </div>
@@ -203,73 +252,85 @@ export default function ProfilePage() {
                 <CardHeader>
                   <CardTitle>Edit Profile</CardTitle>
                   <CardDescription>
-                    Update your personal information here.
+                    Update your personal information here. Click 'Save Changes' to apply.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="firstname"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="John" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="lastname"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="bio"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bio</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Tell us a little bit about yourself"
+                              className="resize-none"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <InfoField icon={UserIcon} label="Username" value={user.username} />
+                        <InfoField icon={Mail} label="Email" value={user.email} />
+                        <InfoField icon={Phone} label="Phone Number" value={user.phoneNumber} />
+                        <InfoField icon={MapPin} label="Address" value={user.address} />
+                         <FormItem>
+                            <FormLabel>Geo Location</FormLabel>
                             <div className="relative">
-                                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.username} readOnly className="pl-10 bg-muted/50" />
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input value={user.geo_location ? `${user.geo_location.lat.toFixed(4)}, ${user.geo_location.lng.toFixed(4)}` : 'Not set'} readOnly className="pl-10 bg-muted/50" />
                             </div>
-                        </FormControl>
-                    </FormItem>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="firstname"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John" {...field} />
-                          </FormControl>
-                          <FormMessage />
                         </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastname"
-                      render={({ field }) => (
+                        <InfoField icon={KeyRound} label="Created By" value={user.createdBy} />
+                        <InfoField icon={KeyRound} label="Updated By" value={user.updatedBy} />
                         <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
+                            <FormLabel>Created At</FormLabel>
+                            <div className="relative">
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input value={user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'} readOnly className="pl-10 bg-muted/50" />
+                            </div>
                         </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="bio"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bio</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Tell us a little bit about yourself"
-                            className="resize-none"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input value={user.address || 'Not set'} readOnly className="pl-10 bg-muted/50" />
-                      </div>
-                    </FormControl>
-                  </FormItem>
+                        <FormItem>
+                            <FormLabel>Updated At</FormLabel>
+                            <div className="relative">
+                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'N/A'} readOnly className="pl-10 bg-muted/50" />
+                            </div>
+                        </FormItem>
+                    </div>
+
                   <Button type="submit" disabled={!form.formState.isDirty}>Save Changes</Button>
                 </CardContent>
               </Card>
@@ -279,4 +340,3 @@ export default function ProfilePage() {
       </div>
     </div>
   );
-}
