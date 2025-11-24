@@ -29,42 +29,50 @@ type User = {
 export function UserNav() {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
     const updateUser = async () => {
       let loggedInUser = getLoggedInUser();
       
       if (loggedInUser) {
-        // If user is in local storage but doesn't have avatarUrl, fetch full profile
         if (!loggedInUser.avatarUrl) {
           const token = localStorage.getItem('accessToken');
           if (token) {
             try {
               const profile = await fetchUserProfile(loggedInUser.id, token);
-              // Merge profile data into the user object
               const fullUser = { ...loggedInUser, ...profile };
-              // Update local storage so we don't have to fetch next time
               localStorage.setItem('user', JSON.stringify(fullUser));
-              loggedInUser = fullUser;
+              setUser(fullUser);
             } catch (error) {
-              console.error('Failed to fetch user profile for avatar:', error);
-              // If fetching fails, we proceed with the user data we have.
+              console.error('Failed to fetch user profile:', error);
+              setUser(loggedInUser); // Fallback to user data without full profile
             }
+          } else {
+            setUser(loggedInUser);
           }
+        } else {
+          setUser(loggedInUser);
         }
-        setUser(loggedInUser);
       }
     };
 
     updateUser();
+
+    // Listen for storage changes to update UI if login/logout happens in another tab
+    const handleStorageChange = () => {
+      updateUser();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+
   }, []);
 
   const handleLogout = async () => {
     await logout();
     setUser(null);
     router.push('/login');
-    router.refresh();
+    // We don't need router.refresh() here because the storage event listener
+    // and component state will handle the UI update.
   };
 
   if (!user) {
@@ -75,6 +83,7 @@ export function UserNav() {
     );
   }
   
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   const avatarSrc = user.avatarUrl && backendUrl ? `${backendUrl}${user.avatarUrl}` : `https://avatar.vercel.sh/${user.username}.png`;
 
   return (

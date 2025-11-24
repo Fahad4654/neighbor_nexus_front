@@ -26,7 +26,6 @@ export async function login(identifier: string, password: string): Promise<any> 
     localStorage.setItem('refreshToken', data.refreshToken);
   }
   if (data.user) {
-    // Store basic user data. The full profile will be fetched by the UI when needed.
     localStorage.setItem('user', JSON.stringify(data.user));
   }
 
@@ -168,7 +167,8 @@ export async function fetchUserProfile(userId: string, token: string) {
     });
 
     if (!response.ok) {
-        throw new Error('Failed to fetch user profile');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch user profile');
     }
 
     const data = await response.json();
