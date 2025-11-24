@@ -160,13 +160,6 @@ export default function ProfilePage() {
                     </div>
                     <div className="text-center space-y-1">
                         <CardTitle className="text-2xl">{user.firstname} {user.lastname}</CardTitle>
-                        <p className="text-muted-foreground">@{user.username}</p>
-                        {user.address && (
-                            <div className="flex items-center justify-center text-sm text-muted-foreground pt-1">
-                                <MapPin className="mr-2 h-4 w-4" />
-                                <span>{user.address}</span>
-                            </div>
-                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -255,5 +248,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
