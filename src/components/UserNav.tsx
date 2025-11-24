@@ -51,7 +51,7 @@ export function UserNav() {
     );
   }
   
-  const avatarSrc = user.avatarUrl ? `${backendUrl}${user.avatarUrl}` : `https://avatar.vercel.sh/${user.username}.png`;
+  const avatarSrc = user.avatarUrl && backendUrl ? `${backendUrl}${user.avatarUrl}` : `https://avatar.vercel.sh/${user.username}.png`;
 
 
   return (
