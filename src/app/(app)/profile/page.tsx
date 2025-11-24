@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -29,7 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getLoggedInUser, updateUserProfile } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Upload } from 'lucide-react';
+import { MapPin, Upload } from 'lucide-react';
 
 type User = {
   id: string;
@@ -38,6 +39,7 @@ type User = {
   email: string;
   username: string;
   bio?: string;
+  address?: string;
   avatarUrl?: string;
 };
 
@@ -111,9 +113,10 @@ export default function ProfilePage() {
              <Card>
                 <CardContent className="pt-6 flex flex-col items-center gap-4">
                     <Skeleton className="h-32 w-32 rounded-full" />
-                    <div className="space-y-1 text-center">
+                    <div className="space-y-2 text-center">
                         <Skeleton className="h-6 w-32" />
                         <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-4 w-48" />
                     </div>
                 </CardContent>
             </Card>
@@ -157,9 +160,15 @@ export default function ProfilePage() {
                             <span className="sr-only">Upload new photo</span>
                         </Button>
                     </div>
-                    <div className="text-center">
+                    <div className="text-center space-y-1">
                         <CardTitle className="text-2xl">{user.firstname} {user.lastname}</CardTitle>
                         <p className="text-muted-foreground">@{user.username}</p>
+                        {user.address && (
+                            <div className="flex items-center justify-center text-sm text-muted-foreground pt-1">
+                                <MapPin className="mr-2 h-4 w-4" />
+                                <span>{user.address}</span>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -220,6 +229,15 @@ export default function ProfilePage() {
                       </FormItem>
                     )}
                   />
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input value={user.address || 'Not set'} readOnly className="pl-10 bg-muted/50" />
+                      </div>
+                    </FormControl>
+                  </FormItem>
                   <Button type="submit" disabled={!form.formState.isDirty}>Save Changes</Button>
                 </CardContent>
               </Card>
