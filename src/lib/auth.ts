@@ -1,4 +1,5 @@
 
+
 export async function login(identifier: string, password: string): Promise<any> {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (!backendUrl) {
@@ -81,6 +82,45 @@ export async function verifyOtp(identifier: string, otp: string): Promise<any> {
 
     return data;
 }
+
+export async function requestPasswordReset(identifier: string): Promise<any> {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (!backendUrl) {
+    throw new Error('Backend URL is not configured');
+  }
+
+  const response = await fetch(`${backendUrl}/auth/request-reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to request password reset');
+  }
+  return data;
+}
+
+export async function resetPassword(identifier: string, newPassword: string): Promise<any> {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (!backendUrl) {
+    throw new Error('Backend URL is not configured');
+  }
+
+  const response = await fetch(`${backendUrl}/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier, newPassword }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to reset password');
+  }
+  return data;
+}
+
 
 export async function logout() {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
