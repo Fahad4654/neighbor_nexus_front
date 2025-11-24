@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { getLoggedInUser, logout } from '@/lib/auth';
+import { getLoggedInUser, logout, fetchUserProfile } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
@@ -32,8 +32,30 @@ export function UserNav() {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
-    const loggedInUser = getLoggedInUser();
-    setUser(loggedInUser);
+    const updateUser = async () => {
+      let loggedInUser = getLoggedInUser();
+      
+      // If user is in local storage but doesn't have avatarUrl, fetch full profile
+      if (loggedInUser && !loggedInUser.avatarUrl) {
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+          try {
+            const profile = await fetchUserProfile(loggedInUser.id, token);
+            // Merge profile data into the user object
+            const fullUser = { ...loggedInUser, ...profile };
+            // Update local storage so we don't have to fetch next time
+            localStorage.setItem('user', JSON.stringify(fullUser));
+            loggedInUser = fullUser;
+          } catch (error) {
+            console.error('Failed to fetch user profile for avatar:', error);
+            // Proceed with incomplete user data
+          }
+        }
+      }
+      setUser(loggedInUser);
+    };
+
+    updateUser();
   }, []);
 
   const handleLogout = async () => {
@@ -52,7 +74,6 @@ export function UserNav() {
   }
   
   const avatarSrc = user.avatarUrl && backendUrl ? `${backendUrl}${user.avatarUrl}` : `https://avatar.vercel.sh/${user.username}.png`;
-
 
   return (
     <DropdownMenu>

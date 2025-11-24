@@ -26,16 +26,8 @@ export async function login(identifier: string, password: string): Promise<any> 
     localStorage.setItem('refreshToken', data.refreshToken);
   }
   if (data.user) {
-    try {
-      // Fetch full profile to get avatarUrl and other details
-      const profile = await fetchUserProfile(data.user.id, data.accessToken);
-      const fullUser = { ...data.user, ...profile };
-      localStorage.setItem('user', JSON.stringify(fullUser));
-    } catch (e) {
-        console.error("Failed to fetch user profile on login", e);
-        // Store basic user data even if profile fetch fails
-        localStorage.setItem('user', JSON.stringify(data.user));
-    }
+    // Store basic user data. The full profile will be fetched by the UI when needed.
+    localStorage.setItem('user', JSON.stringify(data.user));
   }
 
   return data;
