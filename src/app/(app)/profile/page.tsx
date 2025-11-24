@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/StarRating';
+import { cn } from '@/lib/utils';
 
 type User = {
   id: string;
@@ -78,14 +79,14 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-const InfoField = ({ icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) => {
+const InfoField = ({ icon, label, value, isEditing }: { icon: React.ElementType, label: string, value: React.ReactNode, isEditing: boolean }) => {
     const Icon = icon;
     return (
         <FormItem>
             <FormLabel>{label}</FormLabel>
             <div className="relative">
                 <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input value={String(value ?? 'N/A')} readOnly className="pl-10 bg-muted/50" />
+                <Input value={String(value ?? 'N/A')} readOnly className={cn("pl-10 bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")} />
             </div>
         </FormItem>
     );
@@ -138,12 +139,14 @@ export default function ProfilePage() {
     
     fetchAvatar();
 
-    return () => {
-      if (avatarSrc && avatarSrc.startsWith('blob:')) {
-        URL.revokeObjectURL(avatarSrc);
-      }
+    const cleanup = () => {
+        if (avatarSrc && avatarSrc.startsWith('blob:')) {
+            URL.revokeObjectURL(avatarSrc);
+        }
     };
-  }, [user]);
+
+    return cleanup;
+  }, [user, avatarSrc]);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -345,7 +348,7 @@ export default function ProfilePage() {
                           <FormControl>
                             <Textarea
                               placeholder="Tell us a little bit about yourself"
-                              className="resize-none"
+                              className={cn("resize-none", !isEditing ? 'bg-muted/50' : '')}
                               {...field}
                               readOnly={!isEditing}
                               />
@@ -363,7 +366,7 @@ export default function ProfilePage() {
                             <FormControl>
                                <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input placeholder="123 Main St, Anytown, USA" {...field} readOnly={!isEditing} className={`pl-10 ${!isEditing ? 'bg-muted/50' : ''}`} />
+                                <Input placeholder="123 Main St, Anytown, USA" {...field} readOnly={!isEditing} className={cn("pl-10", !isEditing ? 'bg-muted/50' : '')} />
                                </div>
                             </FormControl>
                             <FormMessage />
@@ -371,30 +374,30 @@ export default function ProfilePage() {
                         )}
                       />
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <InfoField icon={UserIcon} label="Username" value={user.username} />
-                        <InfoField icon={Mail} label="Email" value={user.email} />
-                        <InfoField icon={Phone} label="Phone Number" value={user.phoneNumber} />
+                        <InfoField icon={UserIcon} label="Username" value={user.username} isEditing={isEditing} />
+                        <InfoField icon={Mail} label="Email" value={user.email} isEditing={isEditing} />
+                        <InfoField icon={Phone} label="Phone Number" value={user.phoneNumber} isEditing={isEditing} />
                          <FormItem>
                             <FormLabel>Geo Location</FormLabel>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={geoDisplayValue} readOnly className="pl-10 bg-muted/50" />
+                                <Input value={geoDisplayValue} readOnly className={cn("pl-10 bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")} />
                             </div>
                         </FormItem>
-                        <InfoField icon={KeyRound} label="Created By" value={user.createdBy} />
-                        <InfoField icon={KeyRound} label="Updated By" value={user.updatedBy} />
+                        <InfoField icon={KeyRound} label="Created By" value={user.createdBy} isEditing={isEditing} />
+                        <InfoField icon={KeyRound} label="Updated By" value={user.updatedBy} isEditing={isEditing} />
                         <FormItem>
                             <FormLabel>Created At</FormLabel>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'} readOnly className="pl-10 bg-muted/50" />
+                                <Input value={user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'} readOnly className={cn("pl-10 bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")} />
                             </div>
                         </FormItem>
                         <FormItem>
                             <FormLabel>Updated At</FormLabel>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'NA'} readOnly className="pl-10 bg-muted/50" />
+                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'NA'} readOnly className={cn("pl-10 bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")} />
                             </div>
                         </FormItem>
                     </div>
@@ -414,3 +417,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
