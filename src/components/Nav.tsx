@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   LogIn,
   UserPlus,
+  User,
 } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from './ui/sidebar';
 import Link from 'next/link';
@@ -29,6 +30,7 @@ export function Nav() {
     { href: '/tools', label: 'Tools', icon: Wrench, show: 'loggedIn' },
     { href: '/skills', label: 'Skills', icon: Lightbulb, show: 'loggedIn' },
     { href: '/transactions', label: 'Transactions', icon: ArrowRightLeft, show: 'loggedIn' },
+    { href: '/profile', label: 'Profile', icon: User, show: 'loggedIn' },
     { href: '/verify', label: 'Verify', icon: ShieldCheck, show: 'loggedIn' },
     { href: '/login', label: 'Login', icon: LogIn, show: 'loggedOut' },
     { href: '/signup', label: 'Sign Up', icon: UserPlus, show: 'loggedOut' },
