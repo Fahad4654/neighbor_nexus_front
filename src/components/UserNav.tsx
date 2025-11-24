@@ -35,11 +35,13 @@ export function UserNav() {
       let loggedInUser = getLoggedInUser();
       
       if (loggedInUser) {
+        // Always fetch the latest profile info on component mount if not fully loaded
         if (!loggedInUser.avatarUrl) {
           const token = localStorage.getItem('accessToken');
           if (token) {
             try {
               const profile = await fetchUserProfile(loggedInUser.id, token);
+              // The profile object from your API contains bio, avatarUrl, address
               const fullUser = { ...loggedInUser, ...profile };
               localStorage.setItem('user', JSON.stringify(fullUser));
               setUser(fullUser);
@@ -71,8 +73,7 @@ export function UserNav() {
     await logout();
     setUser(null);
     router.push('/login');
-    // We don't need router.refresh() here because the storage event listener
-    // and component state will handle the UI update.
+    router.refresh();
   };
 
   if (!user) {
@@ -95,7 +96,7 @@ export function UserNav() {
               src={avatarSrc}
               alt={user.username}
             />
-            <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

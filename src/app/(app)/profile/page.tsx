@@ -113,8 +113,6 @@ export default function ProfilePage() {
                     <Skeleton className="h-32 w-32 rounded-full" />
                     <div className="space-y-2 text-center">
                         <Skeleton className="h-6 w-32" />
-                        <Skeleton className="h-4 w-40" />
-                        <Skeleton className="h-4 w-48" />
                     </div>
                 </CardContent>
             </Card>
