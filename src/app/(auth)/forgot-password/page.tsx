@@ -27,7 +27,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { User, KeyRound, Lock } from 'lucide-react';
+import { User, KeyRound, Lock, Eye, EyeOff } from 'lucide-react';
 import { requestPasswordReset, verifyOtp, resetPassword } from '@/lib/auth';
 
 const requestSchema = z.object({
@@ -55,6 +55,8 @@ export default function ForgotPasswordPage() {
   const router = useRouter();
   const [step, setStep] = useState<'request' | 'verify' | 'reset'>('request');
   const [identifier, setIdentifier] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const requestForm = useForm<z.infer<typeof requestSchema>>({
     resolver: zodResolver(requestSchema),
@@ -217,11 +219,18 @@ export default function ForgotPasswordPage() {
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                              type="password"
+                              type={showPassword ? 'text' : 'password'}
                               placeholder="••••••••"
                               {...field}
-                              className="pl-10"
+                              className="pl-10 pr-10"
                             />
+                             <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                              >
+                                {showPassword ? <EyeOff /> : <Eye />}
+                              </button>
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -238,11 +247,18 @@ export default function ForgotPasswordPage() {
                           <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                              type="password"
+                              type={showConfirmPassword ? 'text' : 'password'}
                               placeholder="••••••••"
                               {...field}
-                              className="pl-10"
+                              className="pl-10 pr-10"
                             />
+                             <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                              >
+                                {showConfirmPassword ? <EyeOff /> : <Eye />}
+                              </button>
                           </div>
                         </FormControl>
                         <FormMessage />

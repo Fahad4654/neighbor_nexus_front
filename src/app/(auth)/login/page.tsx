@@ -27,7 +27,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { User, Lock } from 'lucide-react';
+import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import { login, getLoggedInUser } from '@/lib/auth';
 import Loading from '@/app/loading';
 
@@ -44,6 +44,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const user = getLoggedInUser();
@@ -134,11 +135,18 @@ export default function LoginPage() {
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                          type="password"
+                          type={showPassword ? 'text' : 'password'}
                           placeholder="••••••••"
                           {...field}
-                          className="pl-10"
+                          className="pl-10 pr-10"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                        >
+                          {showPassword ? <EyeOff /> : <Eye />}
+                        </button>
                       </div>
                     </FormControl>
                     <FormMessage />

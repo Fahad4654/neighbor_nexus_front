@@ -29,7 +29,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Lock, User, Phone, MapPin, KeyRound } from 'lucide-react';
+import { Mail, Lock, User, Phone, MapPin, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { register, verifyOtp } from '@/lib/auth';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -62,6 +62,8 @@ export default function SignupPage() {
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [step, setStep] = useState<'registration' | 'otp'>('registration');
   const [identifier, setIdentifier] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const GoogleMapPicker = useMemo(() => dynamic(() => import('@/components/GoogleMapPicker'), {
     ssr: false,
@@ -252,7 +254,14 @@ export default function SignupPage() {
                           <FormControl>
                             <div className="relative">
                               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <Input type="password" placeholder="••••••••" {...field} className="pl-10" />
+                              <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} className="pl-10 pr-10" />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                              >
+                                {showPassword ? <EyeOff /> : <Eye />}
+                              </button>
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -270,7 +279,14 @@ export default function SignupPage() {
                           <FormControl>
                             <div className="relative">
                               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <Input type="password" placeholder="••••••••" {...field} className="pl-10" />
+                              <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" {...field} className="pl-10 pr-10" />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                              >
+                                {showConfirmPassword ? <EyeOff /> : <Eye />}
+                              </button>
                             </div>
                           </FormControl>
                           <FormMessage />
