@@ -329,7 +329,7 @@ export default function ProfilePage() {
                             <FormLabel>Updated At</FormLabel>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'N/A'} readOnly className="pl-10 bg-muted/50" />
+                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'NA'} readOnly className="pl-10 bg-muted/50" />
                             </div>
                         </FormItem>
                     </div>
@@ -344,3 +344,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    

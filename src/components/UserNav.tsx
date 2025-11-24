@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -96,6 +97,8 @@ export function UserNav() {
         } else {
            setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
         }
+      } else if (user?.username) {
+        setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
       }
     };
     
@@ -166,3 +169,5 @@ export function UserNav() {
     </DropdownMenu>
   );
 }
+
+    
