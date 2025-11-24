@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -56,7 +57,7 @@ type User = {
   phoneNumber?: string;
   isAdmin?: boolean;
   isVerified?: boolean;
-  rating_avg?: number;
+  rating_avg?: number | string;
   geo_location?: { lat: number, lng: number };
   createdBy?: string;
   updatedBy?: string;
@@ -212,6 +213,8 @@ export default function ProfilePage() {
     );
   }
 
+  const ratingValue = typeof user.rating_avg === 'string' ? parseFloat(user.rating_avg) : user.rating_avg || 0;
+
   return (
     <div className="space-y-4">
       <PageHeader title="My Profile" />
@@ -234,8 +237,8 @@ export default function ProfilePage() {
                     </div>
                      {user.rating_avg && (
                         <div className="flex items-center gap-2">
-                            <StarRating rating={user.rating_avg} readOnly />
-                            <span className="text-muted-foreground text-sm">({user.rating_avg.toFixed(1)})</span>
+                            <StarRating rating={ratingValue} readOnly />
+                            <span className="text-muted-foreground text-sm">({ratingValue.toFixed(1)})</span>
                         </div>
                     )}
                     <div className="flex gap-2">
@@ -340,3 +343,6 @@ export default function ProfilePage() {
       </div>
     </div>
   );
+}
+
+    
