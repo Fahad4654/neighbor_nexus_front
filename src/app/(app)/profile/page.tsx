@@ -73,6 +73,7 @@ const profileFormSchema = z.object({
   firstname: z.string().min(2, { message: 'First name must be at least 2 characters.' }),
   lastname: z.string().min(2, { message: 'Last name must be at least 2 characters.' }),
   bio: z.string().max(160, { message: 'Bio must not be longer than 160 characters.' }).optional(),
+  address: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -150,6 +151,7 @@ export default function ProfilePage() {
       firstname: user?.firstname || '',
       lastname: user?.lastname || '',
       bio: user?.bio || '',
+      address: user?.address || '',
     },
     mode: 'onChange',
   });
@@ -160,6 +162,7 @@ export default function ProfilePage() {
             firstname: user.firstname || '',
             lastname: user.lastname || '',
             bio: user.bio || '',
+            address: user.address || '',
         });
     }
   }, [user, form]);
@@ -202,6 +205,7 @@ export default function ProfilePage() {
             firstname: user.firstname,
             lastname: user.lastname,
             bio: user.bio || '',
+            address: user.address || '',
         });
     }
     setIsEditing(false);
@@ -350,11 +354,26 @@ export default function ProfilePage() {
                         </FormItem>
                       )}
                     />
+                     <FormField
+                        control={form.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Address</FormLabel>
+                            <FormControl>
+                               <div className="relative">
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input placeholder="123 Main St, Anytown, USA" {...field} readOnly={!isEditing} className={`pl-10 ${!isEditing ? 'bg-muted/50' : ''}`} />
+                               </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <InfoField icon={UserIcon} label="Username" value={user.username} />
                         <InfoField icon={Mail} label="Email" value={user.email} />
                         <InfoField icon={Phone} label="Phone Number" value={user.phoneNumber} />
-                        <InfoField icon={MapPin} label="Address" value={user.address} />
                          <FormItem>
                             <FormLabel>Geo Location</FormLabel>
                             <div className="relative">
