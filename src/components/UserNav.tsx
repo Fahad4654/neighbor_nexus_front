@@ -87,7 +87,6 @@ export function UserNav() {
               const objectUrl = URL.createObjectURL(blob);
               setAvatarSrc(objectUrl);
             } else {
-              // Fallback if image fetch fails
               setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
             }
           } catch (error) {
@@ -104,7 +103,6 @@ export function UserNav() {
     
     fetchAvatar();
 
-    // Clean up the object URL when component unmounts or user changes
     return () => {
       if (avatarSrc && avatarSrc.startsWith('blob:')) {
         URL.revokeObjectURL(avatarSrc);
@@ -169,5 +167,3 @@ export function UserNav() {
     </DropdownMenu>
   );
 }
-
-    
