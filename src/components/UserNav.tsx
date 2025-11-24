@@ -18,18 +18,22 @@ import { useRouter } from 'next/navigation';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
 type User = {
+  id: string;
   firstname: string;
   lastname: string;
   email: string;
   username: string;
+  avatarUrl?: string;
 };
 
 export function UserNav() {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
-    setUser(getLoggedInUser());
+    const loggedInUser = getLoggedInUser();
+    setUser(loggedInUser);
   }, []);
 
   const handleLogout = async () => {
@@ -46,6 +50,9 @@ export function UserNav() {
       </Button>
     );
   }
+  
+  const avatarSrc = user.avatarUrl ? `${backendUrl}${user.avatarUrl}` : `https://avatar.vercel.sh/${user.username}.png`;
+
 
   return (
     <DropdownMenu>
@@ -53,7 +60,7 @@ export function UserNav() {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage
-              src={`https://avatar.vercel.sh/${user.username}.png`}
+              src={avatarSrc}
               alt={user.username}
             />
             <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>

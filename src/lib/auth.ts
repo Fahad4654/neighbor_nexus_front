@@ -27,7 +27,10 @@ export async function login(identifier: string, password: string): Promise<any> 
     localStorage.setItem('refreshToken', data.refreshToken);
   }
   if (data.user) {
-    localStorage.setItem('user', JSON.stringify(data.user));
+    // Fetch full profile to get avatarUrl and other details
+    const profile = await fetchUserProfile(data.user.id, data.accessToken);
+    const fullUser = { ...data.user, ...profile };
+    localStorage.setItem('user', JSON.stringify(fullUser));
   }
 
   return data;
@@ -155,6 +158,26 @@ export function getLoggedInUser() {
   const user = localStorage.getItem('user');
   return user ? JSON.parse(user) : null;
 }
+
+export async function fetchUserProfile(userId: string, token: string) {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+    }
+    const response = await fetch(`${backendUrl}/users/${userId}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+    }
+
+    const data = await response.json();
+    return data.profile;
+}
+
 
 export async function refreshToken(): Promise<any> {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
