@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -30,7 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getLoggedInUser, updateUserProfile } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Upload } from 'lucide-react';
+import { MapPin, Upload, User as UserIcon } from 'lucide-react';
 
 type User = {
   id: string;
@@ -184,6 +182,15 @@ export default function ProfilePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    <FormItem>
+                        <FormLabel>Username</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input value={user.username} readOnly className="pl-10 bg-muted/50" />
+                            </div>
+                        </FormControl>
+                    </FormItem>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
@@ -248,3 +255,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
