@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -146,7 +147,7 @@ export default function ProfilePage() {
     };
 
     return cleanup;
-  }, [user, avatarSrc]);
+  }, [user]);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
