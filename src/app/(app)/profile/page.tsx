@@ -41,6 +41,7 @@ import {
   Calendar,
   KeyRound,
   BadgeCheck,
+  Edit,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/StarRating';
@@ -93,6 +94,7 @@ const InfoField = ({ icon, label, value }: { icon: React.ElementType, label: str
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [avatarSrc, setAvatarSrc] = useState<string | undefined>(undefined);
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -152,6 +154,16 @@ export default function ProfilePage() {
     mode: 'onChange',
   });
 
+  useEffect(() => {
+    if (user) {
+        form.reset({
+            firstname: user.firstname || '',
+            lastname: user.lastname || '',
+            bio: user.bio || '',
+        });
+    }
+  }, [user, form]);
+
   async function onSubmit(data: ProfileFormValues) {
     const token = localStorage.getItem('accessToken');
     if (!user || !token) {
@@ -169,6 +181,7 @@ export default function ProfilePage() {
       const updatedUser = { ...user, ...data };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
+      setIsEditing(false);
 
       toast({
         title: 'Profile Updated',
@@ -182,6 +195,18 @@ export default function ProfilePage() {
       });
     }
   }
+
+  const handleCancel = () => {
+    if (user) {
+        form.reset({
+            firstname: user.firstname,
+            lastname: user.lastname,
+            bio: user.bio || '',
+        });
+    }
+    setIsEditing(false);
+  };
+
 
   if (!user) {
     return (
@@ -247,7 +272,7 @@ export default function ProfilePage() {
                     <div className="text-center space-y-1">
                         <CardTitle className="text-2xl">{user.firstname} {user.lastname}</CardTitle>
                     </div>
-                     {user.rating_avg && (
+                     {user.rating_avg != null && (
                         <div className="flex items-center gap-2">
                             <StarRating rating={ratingValue} readOnly />
                             <span className="text-muted-foreground text-sm">({ratingValue.toFixed(1)})</span>
@@ -264,11 +289,19 @@ export default function ProfilePage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <Card>
-                <CardHeader>
-                  <CardTitle>Edit Profile</CardTitle>
-                  <CardDescription>
-                    Update your personal information here. Click 'Save Changes' to apply.
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Personal Information</CardTitle>
+                        <CardDescription>
+                            View and manage your personal details.
+                        </CardDescription>
+                    </div>
+                     {!isEditing && (
+                        <Button type="button" onClick={() => setIsEditing(true)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Profile
+                        </Button>
+                    )}
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -279,7 +312,7 @@ export default function ProfilePage() {
                           <FormItem>
                             <FormLabel>First Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="John" {...field} />
+                              <Input placeholder="John" {...field} readOnly={!isEditing} className={!isEditing ? 'bg-muted/50' : ''}/>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -292,7 +325,7 @@ export default function ProfilePage() {
                           <FormItem>
                             <FormLabel>Last Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="Doe" {...field} />
+                              <Input placeholder="Doe" {...field} readOnly={!isEditing} className={!isEditing ? 'bg-muted/50' : ''}/>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -310,7 +343,8 @@ export default function ProfilePage() {
                               placeholder="Tell us a little bit about yourself"
                               className="resize-none"
                               {...field}
-                            />
+                              readOnly={!isEditing}
+                              />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -346,7 +380,12 @@ export default function ProfilePage() {
                         </FormItem>
                     </div>
 
-                  <Button type="submit" disabled={!form.formState.isDirty}>Save Changes</Button>
+                  {isEditing && (
+                    <div className="flex gap-2">
+                      <Button type="submit" disabled={!form.formState.isDirty}>Save Changes</Button>
+                      <Button variant="outline" type="button" onClick={handleCancel}>Cancel</Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </form>
