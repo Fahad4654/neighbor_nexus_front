@@ -98,6 +98,9 @@ export default function ProfilePage() {
         const storedAvatar = localStorage.getItem('avatarImage');
         if (storedAvatar) {
           setAvatarSrc(storedAvatar);
+        } else if (loggedInUser.profile?.avatarUrl) {
+           // This case is for when the page loads but avatar isn't in local storage yet
+           // The login function now handles fetching and storing it.
         } else {
           setAvatarSrc(`https://avatar.vercel.sh/${loggedInUser.username}.png`);
         }
@@ -180,10 +183,11 @@ export default function ProfilePage() {
     }
 
     if (success) {
-      const updatedUserFromStorage = getLoggedInUser();
-      setUser(updatedUserFromStorage);
-      setIsEditing(false);
+      // Manually trigger a storage event to sync other tabs/components
       window.dispatchEvent(new Event('storage'));
+      // Re-fetch user from local storage to update state
+      setUser(getLoggedInUser()); 
+      setIsEditing(false);
     }
   }
 
@@ -396,14 +400,14 @@ export default function ProfilePage() {
                           <FormLabel>Username</FormLabel>
                           <div className="relative">
                               <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <Input value={user.username} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                              <Input value={user.username} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
                           </div>
                       </FormItem>
                        <FormItem>
                           <FormLabel>Email</FormLabel>
                           <div className="relative">
                               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <Input value={user.email} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                              <Input value={user.email} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
                           </div>
                       </FormItem>
                       <FormField
@@ -424,35 +428,35 @@ export default function ProfilePage() {
                             <FormLabel>Geo Location</FormLabel>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={geoDisplayValue} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                                <Input value={geoDisplayValue} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
                             </div>
                         </FormItem>
                         <FormItem>
                             <FormLabel>Created By</FormLabel>
                             <div className="relative">
                                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.createdBy || 'N/A'} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                                <Input value={user.createdBy || 'N/A'} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
                             </div>
                         </FormItem>
                         <FormItem>
                             <FormLabel>Updated By</FormLabel>
                             <div className="relative">
                                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.updatedBy || 'N/A'} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                                <Input value={user.updatedBy || 'N/A'} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
                             </div>
                         </FormItem>
                         <FormItem>
                             <FormLabel>Created At</FormLabel>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                                <Input value={user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
                             </div>
                         </FormItem>
                         <FormItem>
                             <FormLabel>Updated At</FormLabel>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'NA'} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'NA'} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
                             </div>
                         </FormItem>
                     </div>
@@ -472,3 +476,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
