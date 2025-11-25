@@ -323,10 +323,11 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
   // The API response contains the updated profile object with the new avatarUrl
   if (result.profile && result.profile.avatarUrl) {
     const user = getLoggedInUser();
-    const { profile, ...restOfUser } = user;
-    const completeUser = { ...restOfUser, ...result.profile };
-    localStorage.setItem('user', JSON.stringify(completeUser));
-
+    if (user) {
+      const updatedUser = { ...user, ...result.profile };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+    
     // Re-fetch and store the new avatar image
     try {
       const avatarResponse = await fetch(`${backendUrl}${result.profile.avatarUrl}`, {
