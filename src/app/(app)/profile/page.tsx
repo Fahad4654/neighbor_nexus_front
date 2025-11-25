@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -27,7 +27,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getLoggedInUser, updateUserProfile } from '@/lib/auth';
+import { getLoggedInUser, updateUserProfile, uploadAvatar } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -36,7 +36,6 @@ import {
   User as UserIcon, 
   Mail, 
   Phone, 
-  ShieldCheck, 
   Star,
   Calendar,
   KeyRound,
@@ -98,6 +97,7 @@ export default function ProfilePage() {
   const [avatarSrc, setAvatarSrc] = useState<string | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const updateUserState = () => {
@@ -159,7 +159,6 @@ export default function ProfilePage() {
     try {
       const result = await updateUserProfile(user.id, token, data);
       
-      // The API response contains the updated user object
       const updatedUserFromApi = result.user;
       const { profile, ...restOfUser } = updatedUserFromApi;
       const completeUser = { ...restOfUser, ...profile };
@@ -168,7 +167,6 @@ export default function ProfilePage() {
       setUser(completeUser);
       setIsEditing(false);
 
-      // This will trigger other components (like UserNav) to update
       window.dispatchEvent(new Event('storage'));
 
       toast({
@@ -194,6 +192,32 @@ export default function ProfilePage() {
         });
     }
     setIsEditing(false);
+  };
+  
+  const handleAvatarUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    const token = localStorage.getItem('accessToken');
+
+    if (file && user && token) {
+      try {
+        await uploadAvatar(user.id, token, file);
+        toast({
+          title: 'Avatar Uploaded',
+          description: 'Your new profile picture has been saved.',
+        });
+        // The 'storage' event listener will handle updating the avatarSrc
+      } catch (error: any) {
+        toast({
+          variant: 'destructive',
+          title: 'Upload Failed',
+          description: error.message || 'Could not upload your avatar.',
+        });
+      }
+    }
   };
 
 
@@ -249,11 +273,18 @@ export default function ProfilePage() {
             <Card>
                 <CardContent className="pt-6 flex flex-col items-center gap-4">
                     <div className="relative">
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            style={{ display: 'none' }}
+                            accept="image/png, image/jpeg, image/gif"
+                        />
                         <Avatar className="h-32 w-32">
                             <AvatarImage src={avatarSrc} alt={user.username} />
                             <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <Button size="icon" className="absolute bottom-0 right-0 rounded-full">
+                        <Button size="icon" className="absolute bottom-0 right-0 rounded-full" onClick={handleAvatarUploadClick}>
                             <Upload className="h-4 w-4" />
                             <span className="sr-only">Upload new photo</span>
                         </Button>

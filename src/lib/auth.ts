@@ -31,9 +31,9 @@ export async function login(identifier: string, password: string): Promise<any> 
     localStorage.setItem('user', JSON.stringify(completeUser));
 
     // Fetch and store avatar as base64
-    if (profile?.avatarUrl) {
+    if (completeUser?.avatarUrl) {
       try {
-        const avatarResponse = await fetch(`${backendUrl}${profile.avatarUrl}`, {
+        const avatarResponse = await fetch(`${backendUrl}${completeUser.avatarUrl}`, {
           headers: {
             'Authorization': `Bearer ${data.accessToken}`
           }
@@ -43,15 +43,21 @@ export async function login(identifier: string, password: string): Promise<any> 
           const reader = new FileReader();
           reader.onloadend = () => {
             localStorage.setItem('avatarImage', reader.result as string);
+            window.dispatchEvent(new Event('storage'));
           };
           reader.readAsDataURL(blob);
+        } else {
+           localStorage.removeItem('avatarImage');
+           window.dispatchEvent(new Event('storage'));
         }
       } catch (e) {
         console.error("Failed to fetch and store avatar", e);
         localStorage.removeItem('avatarImage');
+        window.dispatchEvent(new Event('storage'));
       }
     } else {
       localStorage.removeItem('avatarImage');
+      window.dispatchEvent(new Event('storage'));
     }
   }
 
@@ -277,7 +283,6 @@ export async function updateUserProfile(userId: string, token: string, profileDa
               const reader = new FileReader();
               reader.onloadend = () => {
                 localStorage.setItem('avatarImage', reader.result as string);
-                 // We might need to trigger a storage event to update other components
                 window.dispatchEvent(new Event('storage'));
               };
               reader.readAsDataURL(blob);
@@ -288,4 +293,59 @@ export async function updateUserProfile(userId: string, token: string, profileDa
     }
     
     return updatedData;
+}
+
+export async function uploadAvatar(userId: string, token: string, file: File) {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (!backendUrl) {
+    throw new Error('Backend URL not configured');
+  }
+
+  const formData = new FormData();
+  formData.append('profile_pic', file);
+  formData.append('userId', userId);
+
+  const response = await fetch(`${backendUrl}/profile/upload-avatar`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Could not upload avatar.');
+  }
+
+  const result = await response.json();
+
+  // The API response contains the updated profile object with the new avatarUrl
+  if (result.profile && result.profile.avatarUrl) {
+    const user = getLoggedInUser();
+    const { profile, ...restOfUser } = user;
+    const completeUser = { ...restOfUser, ...result.profile };
+    localStorage.setItem('user', JSON.stringify(completeUser));
+
+    // Re-fetch and store the new avatar image
+    try {
+      const avatarResponse = await fetch(`${backendUrl}${result.profile.avatarUrl}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (avatarResponse.ok) {
+        const blob = await avatarResponse.blob();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          localStorage.setItem('avatarImage', reader.result as string);
+          // This event tells other components (like UserNav) to update their state
+          window.dispatchEvent(new Event('storage'));
+        };
+        reader.readAsDataURL(blob);
+      }
+    } catch (e) {
+      console.error("Failed to fetch and store new avatar", e);
+    }
+  }
+
+  return result;
 }
