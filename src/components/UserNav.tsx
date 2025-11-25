@@ -28,7 +28,7 @@ type User = {
 };
 
 export function UserNav() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(getLoggedInUser);
   const [avatarSrc, setAvatarSrc] = useState<string | undefined>(undefined);
   const router = useRouter();
 
@@ -48,8 +48,6 @@ export function UserNav() {
   }, []);
 
   useEffect(() => {
-    // This effect runs when the user state changes.
-    // It fetches the avatar image if the URL is present.
     const fetchAvatar = async () => {
       if (user?.avatarUrl) {
         const token = localStorage.getItem('accessToken');
@@ -89,15 +87,11 @@ export function UserNav() {
     
     fetchAvatar();
 
-    // Cleanup function to revoke the blob URL when the component unmounts
-    // or the user changes, to prevent memory leaks.
     return () => {
       if (avatarSrc && avatarSrc.startsWith('blob:')) {
         URL.revokeObjectURL(avatarSrc);
       }
     };
-  // The dependency array is only `user`. This effect should only re-run
-  // when the user object itself changes.
   }, [user]);
 
 

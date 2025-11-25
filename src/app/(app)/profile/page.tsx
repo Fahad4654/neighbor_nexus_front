@@ -94,15 +94,10 @@ const InfoField = ({ icon, label, value, isEditing }: { icon: React.ElementType,
 
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(getLoggedInUser);
   const [avatarSrc, setAvatarSrc] = useState<string | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const userData = getLoggedInUser();
-    setUser(userData);
-  }, []);
 
   useEffect(() => {
     const fetchAvatar = async () => {
@@ -415,5 +410,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
