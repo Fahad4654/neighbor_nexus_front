@@ -52,9 +52,6 @@ type User = {
   lastname: string;
   email: string;
   username: string;
-  bio?: string;
-  address?: string;
-  avatarUrl?: string;
   phoneNumber?: string;
   isAdmin?: boolean;
   isVerified?: boolean;
@@ -67,6 +64,11 @@ type User = {
   updatedBy?: string;
   createdAt?: string;
   updatedAt?: string;
+  profile?: {
+    bio?: string;
+    avatarUrl?: string;
+    address?: string;
+  }
 };
 
 const profileFormSchema = z.object({
@@ -128,8 +130,8 @@ export default function ProfilePage() {
     values: {
       firstname: user?.firstname || '',
       lastname: user?.lastname || '',
-      bio: user?.bio || '',
-      address: user?.address || '',
+      bio: user?.profile?.bio || '',
+      address: user?.profile?.address || '',
     },
     mode: 'onChange',
   });
@@ -139,8 +141,8 @@ export default function ProfilePage() {
         form.reset({
             firstname: user.firstname || '',
             lastname: user.lastname || '',
-            bio: user.bio || '',
-            address: user.address || '',
+            bio: user.profile?.bio || '',
+            address: user.profile?.address || '',
         });
     }
   }, [user, form]);
@@ -159,12 +161,8 @@ export default function ProfilePage() {
     try {
       const result = await updateUserProfile(user.id, token, data);
       
-      const updatedUserFromApi = result.user;
-      const { profile, ...restOfUser } = updatedUserFromApi;
-      const completeUser = { ...restOfUser, ...profile };
-      
-      localStorage.setItem('user', JSON.stringify(completeUser));
-      setUser(completeUser);
+      const updatedUserFromStorage = getLoggedInUser();
+      setUser(updatedUserFromStorage);
       setIsEditing(false);
 
       window.dispatchEvent(new Event('storage'));
@@ -187,8 +185,8 @@ export default function ProfilePage() {
         form.reset({
             firstname: user.firstname,
             lastname: user.lastname,
-            bio: user.bio || '',
-            address: user.address || '',
+            bio: user.profile?.bio || '',
+            address: user.profile?.address || '',
         });
     }
     setIsEditing(false);

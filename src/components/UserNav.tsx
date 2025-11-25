@@ -24,7 +24,9 @@ type User = {
   lastname: string;
   email: string;
   username: string;
-  avatarUrl?: string;
+  profile?: {
+    avatarUrl?: string;
+  };
 };
 
 export function UserNav() {

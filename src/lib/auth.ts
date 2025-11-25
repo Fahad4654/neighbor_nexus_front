@@ -26,16 +26,12 @@ export async function login(identifier: string, password: string): Promise<any> 
     localStorage.setItem('refreshToken', data.refreshToken);
   }
   if (data.user) {
-    const { profile, ...restOfUser } = data.user;
-    // Make sure user.id is not overwritten by profile.id
-    const { id: profileId, ...profileData } = profile || {};
-    const completeUser = { ...restOfUser, ...profileData };
-    localStorage.setItem('user', JSON.stringify(completeUser));
+    localStorage.setItem('user', JSON.stringify(data.user));
 
     // Fetch and store avatar as base64
-    if (completeUser?.avatarUrl) {
+    if (data.user?.profile?.avatarUrl) {
       try {
-        const avatarResponse = await fetch(`${backendUrl}${completeUser.avatarUrl}`, {
+        const avatarResponse = await fetch(`${backendUrl}${data.user.profile.avatarUrl}`, {
           headers: {
             'Authorization': `Bearer ${data.accessToken}`
           }
@@ -206,9 +202,7 @@ export async function fetchUserProfile(userId: string, token: string) {
         throw new Error(errorData.message || 'Failed to fetch user profile');
     }
 
-    const data = await response.json();
-    const { profile, ...restOfUser } = data;
-    return { ...restOfUser, ...profile };
+    return await response.json();
 }
 
 
@@ -273,11 +267,18 @@ export async function updateUserProfile(userId: string, token: string, profileDa
     }
     
     const updatedData = await response.json();
+    
+    const user = getLoggedInUser();
+    if (user) {
+        const updatedUser = { ...user, profile: updatedData.profile };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+
 
     // After updating, if there's a new avatar, re-fetch and store it.
-    if (updatedData.user?.profile?.avatarUrl) {
+    if (updatedData.profile?.avatarUrl) {
          try {
-            const avatarResponse = await fetch(`${backendUrl}${updatedData.user.profile.avatarUrl}`, {
+            const avatarResponse = await fetch(`${backendUrl}${updatedData.profile.avatarUrl}`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
             if (avatarResponse.ok) {
@@ -326,8 +327,7 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
   if (result.profile && result.profile.avatarUrl) {
     const user = getLoggedInUser();
     if (user) {
-       const {id: profileId, ...profileData} = result.profile;
-      const updatedUser = { ...user, ...profileData };
+      const updatedUser = { ...user, profile: result.profile };
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
     
