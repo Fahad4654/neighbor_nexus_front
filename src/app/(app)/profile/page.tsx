@@ -400,14 +400,14 @@ export default function ProfilePage() {
                           <FormLabel>Username</FormLabel>
                           <div className="relative">
                               <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <Input value={user.username} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
+                              <Input value={user.username} disabled className="pl-10 bg-green-50 dark:bg-green-950/30" />
                           </div>
                       </FormItem>
                        <FormItem>
                           <FormLabel>Email</FormLabel>
                           <div className="relative">
                               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <Input value={user.email} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
+                              <Input value={user.email} disabled className="pl-10 bg-green-50 dark:bg-green-950/30" />
                           </div>
                       </FormItem>
                       <FormField
@@ -428,35 +428,35 @@ export default function ProfilePage() {
                             <FormLabel>Geo Location</FormLabel>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={geoDisplayValue} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
+                                <Input value={geoDisplayValue} disabled className="pl-10 bg-green-50 dark:bg-green-950/30" />
                             </div>
                         </FormItem>
                         <FormItem>
                             <FormLabel>Created By</FormLabel>
                             <div className="relative">
                                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.createdBy || 'N/A'} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
+                                <Input value={user.createdBy || 'N/A'} disabled className="pl-10 bg-green-50 dark:bg-green-950/30" />
                             </div>
                         </FormItem>
                         <FormItem>
                             <FormLabel>Updated By</FormLabel>
                             <div className="relative">
                                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.updatedBy || 'N/A'} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
+                                <Input value={user.updatedBy || 'N/A'} disabled className="pl-10 bg-green-50 dark:bg-green-950/30" />
                             </div>
                         </FormItem>
                         <FormItem>
                             <FormLabel>Created At</FormLabel>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
+                                <Input value={user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'} disabled className="pl-10 bg-green-50 dark:bg-green-950/30" />
                             </div>
                         </FormItem>
                         <FormItem>
                             <FormLabel>Updated At</FormLabel>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'NA'} readOnly className="pl-10 bg-green-50 dark:bg-green-950/30" />
+                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'NA'} disabled className="pl-10 bg-green-50 dark:bg-green-950/30" />
                             </div>
                         </FormItem>
                     </div>
@@ -476,5 +476,7 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
 
     
