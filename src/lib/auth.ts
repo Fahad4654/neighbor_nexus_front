@@ -29,7 +29,7 @@ export async function login(identifier: string, password: string): Promise<any> 
     localStorage.setItem('user', JSON.stringify(data.user));
 
     // Fetch and store avatar as base64
-    if (data.user?.profile?.avatarUrl) {
+    if (data.user.profile && data.user.profile.avatarUrl) {
       try {
         const avatarResponse = await fetch(`${backendUrl}${data.user.profile.avatarUrl}`, {
           headers: {
@@ -246,19 +246,25 @@ export async function refreshToken(): Promise<any> {
   }
 }
 
-export async function updateUserProfile(userId: string, token: string, profileData: any) {
+export async function updateUserProfile(userId: string, token: string, profileData: { bio?: string; address?: string }) {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     if (!backendUrl) {
         throw new Error('Backend URL not configured');
     }
 
-    const response = await fetch(`${backendUrl}/users/${userId}/profile`, {
-        method: 'PATCH',
+    const payload = {
+        userId,
+        bio: profileData.bio,
+        address: profileData.address,
+    };
+
+    const response = await fetch(`${backendUrl}/profile`, {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(profileData)
+        body: JSON.stringify(payload)
     });
 
     if (!response.ok) {

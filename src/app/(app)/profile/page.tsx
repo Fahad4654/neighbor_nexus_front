@@ -72,8 +72,6 @@ type User = {
 };
 
 const profileFormSchema = z.object({
-  firstname: z.string().min(2, { message: 'First name must be at least 2 characters.' }),
-  lastname: z.string().min(2, { message: 'Last name must be at least 2 characters.' }),
   bio: z.string().max(160, { message: 'Bio must not be longer than 160 characters.' }).optional(),
   address: z.string().optional(),
 });
@@ -128,8 +126,6 @@ export default function ProfilePage() {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     values: {
-      firstname: user?.firstname || '',
-      lastname: user?.lastname || '',
       bio: user?.profile?.bio || '',
       address: user?.profile?.address || '',
     },
@@ -139,8 +135,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
         form.reset({
-            firstname: user.firstname || '',
-            lastname: user.lastname || '',
             bio: user.profile?.bio || '',
             address: user.profile?.address || '',
         });
@@ -159,7 +153,7 @@ export default function ProfilePage() {
     }
 
     try {
-      const result = await updateUserProfile(user.id, token, data);
+      await updateUserProfile(user.id, token, data);
       
       const updatedUserFromStorage = getLoggedInUser();
       setUser(updatedUserFromStorage);
@@ -183,8 +177,6 @@ export default function ProfilePage() {
   const handleCancel = () => {
     if (user) {
         form.reset({
-            firstname: user.firstname,
-            lastname: user.lastname,
             bio: user.profile?.bio || '',
             address: user.profile?.address || '',
         });
@@ -323,32 +315,18 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="firstname"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>First Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="John" {...field} readOnly={!isEditing} className={!isEditing ? 'bg-muted/50' : ''}/>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="lastname"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Last Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Doe" {...field} readOnly={!isEditing} className={!isEditing ? 'bg-muted/50' : ''}/>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input value={user.firstname} readOnly className={cn("bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")}/>
+                        </FormControl>
+                      </FormItem>
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input value={user.lastname} readOnly className={cn("bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")}/>
+                        </FormControl>
+                      </FormItem>
                     </div>
                     <FormField
                       control={form.control}
