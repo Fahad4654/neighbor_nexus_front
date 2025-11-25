@@ -28,11 +28,12 @@ export async function login(identifier: string, password: string): Promise<any> 
     localStorage.setItem('refreshToken', data.refreshToken);
   }
   if (data.user) {
-    localStorage.setItem('user', JSON.stringify(data.user));
+    const userToStore = { ...data.user, profile: data.profile };
+    localStorage.setItem('user', JSON.stringify(userToStore));
 
-    if (data.user.profile && data.user.profile.avatarUrl) {
+    if (data.profile && data.profile.avatarUrl) {
       try {
-        const avatarResponse = await fetch(`${backendUrl}${data.user.profile.avatarUrl}`, {
+        const avatarResponse = await fetch(`${backendUrl}${data.profile.avatarUrl}`, {
           headers: {
             'Authorization': `Bearer ${data.accessToken}`
           }
@@ -203,7 +204,11 @@ export async function fetchUserProfile(userId: string, token: string) {
         throw new Error(errorData.message || 'Failed to fetch user profile');
     }
 
-    return await response.json();
+    const data = await response.json();
+    if (data.user && data.profile) {
+        return { ...data.user, profile: data.profile };
+    }
+    return data;
 }
 
 
@@ -272,8 +277,8 @@ export async function updateUser(
         };
     } else if (updateType === 'profile') {
         endpoint = `${backendUrl}/profile`;
-        payload = {
-            userId,
+         payload = {
+            userId: userId,
             ...data
         };
     } else {
@@ -297,13 +302,17 @@ export async function updateUser(
     const updatedData = await response.json();
     
     // Update local storage
-    if (updateType === 'core' && updatedData.user) {
-        const updatedUser = { ...currentUser, ..._.omit(updatedData.user, 'profile') };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-    } else if (updateType === 'profile' && updatedData.profile) {
-        const updatedUser = { ...currentUser, profile: updatedData.profile };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+    const storedUser = getLoggedInUser();
+    if (storedUser) {
+        if (updateType === 'core' && updatedData.user) {
+            const updatedUser = { ...storedUser, ..._.omit(updatedData.user, 'profile') };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+        } else if (updateType === 'profile' && updatedData.profile) {
+            const updatedUser = { ...storedUser, profile: { ...storedUser.profile, ...updatedData.profile } };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
     }
+    
 
     return updatedData;
 }
@@ -336,8 +345,9 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
   if (result.profile && result.profile.avatarUrl) {
     const user = getLoggedInUser();
     if (user) {
-      const updatedUser = { ...user, profile: result.profile };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+        const updatedProfile = { ...user.profile, ...result.profile };
+        const updatedUser = { ...user, profile: updatedProfile };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
     }
     
     try {

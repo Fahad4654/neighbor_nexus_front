@@ -27,7 +27,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getLoggedInUser, updateUser, uploadAvatar } from '@/lib/auth';
+import { getLoggedInUser, updateUser, uploadAvatar, fetchUserProfile } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -84,37 +84,58 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(getLoggedInUser);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [avatarSrc, setAvatarSrc] = useState<string | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const updateUserState = () => {
+    const loadUserData = async () => {
+      setLoading(true);
       const loggedInUser = getLoggedInUser();
-      setUser(loggedInUser);
-      if (loggedInUser) {
-        const storedAvatar = localStorage.getItem('avatarImage');
-        if (storedAvatar) {
-          setAvatarSrc(storedAvatar);
-        } else if (loggedInUser.profile?.avatarUrl) {
-           // This case is for when the page loads but avatar isn't in local storage yet
-           // The login function now handles fetching and storing it.
-        } else {
-          setAvatarSrc(`https://avatar.vercel.sh/${loggedInUser.username}.png`);
+      const token = localStorage.getItem('accessToken');
+
+      if (loggedInUser && token) {
+        try {
+          const freshUserData = await fetchUserProfile(loggedInUser.id, token);
+          setUser(freshUserData);
+          localStorage.setItem('user', JSON.stringify(freshUserData)); // Sync localStorage
+          
+          const storedAvatar = localStorage.getItem('avatarImage');
+          if (storedAvatar) {
+            setAvatarSrc(storedAvatar);
+          } else if (freshUserData.profile?.avatarUrl) {
+             // This case is for when the page loads but avatar isn't in local storage yet
+             // The login function now handles fetching and storing it.
+          } else {
+            setAvatarSrc(`https://avatar.vercel.sh/${freshUserData.username}.png`);
+          }
+        } catch (error) {
+          console.error("Failed to fetch profile", error);
+          // Fallback to localStorage if API fails
+          setUser(loggedInUser);
         }
-      } else {
-        setAvatarSrc(undefined);
       }
+      setLoading(false);
     };
 
-    updateUserState();
+    loadUserData();
+    
+    // This listener handles avatar updates from other tabs or after uploads
+    const handleStorageChange = () => {
+        const storedAvatar = localStorage.getItem('avatarImage');
+        if (user && storedAvatar) {
+            setAvatarSrc(storedAvatar);
+        }
+    };
 
-    window.addEventListener('storage', updateUserState);
+    window.addEventListener('storage', handleStorageChange);
     return () => {
-      window.removeEventListener('storage', updateUserState);
+      window.removeEventListener('storage', handleStorageChange);
     };
+
   }, []);
 
   const form = useForm<ProfileFormValues>({
@@ -153,28 +174,36 @@ export default function ProfilePage() {
     }
 
     const { formState: { dirtyFields } } = form;
-    const dirtyFieldNames = Object.keys(dirtyFields);
     
-    const coreFieldsToUpdate = _.pick(data, _.intersection(dirtyFieldNames, ['firstname', 'lastname', 'phoneNumber']));
-    const profileFieldsToUpdate = _.pick(data, _.intersection(dirtyFieldNames, ['bio', 'address']));
+    const coreFieldsToUpdate = _.pick(data, _.intersection(Object.keys(dirtyFields), ['firstname', 'lastname', 'phoneNumber']));
+    const profileFieldsToUpdate = _.pick(data, _.intersection(Object.keys(dirtyFields), ['bio', 'address']));
 
-    let success = true;
+    let successCount = 0;
+    const totalOperations = (Object.keys(coreFieldsToUpdate).length > 0 ? 1 : 0) + (Object.keys(profileFieldsToUpdate).length > 0 ? 1 : 0);
 
     try {
-        if (!_.isEmpty(coreFieldsToUpdate)) {
+        if (Object.keys(coreFieldsToUpdate).length > 0) {
             await updateUser(user.id, token, 'core', coreFieldsToUpdate);
+            successCount++;
         }
-        if (!_.isEmpty(profileFieldsToUpdate)) {
+        if (Object.keys(profileFieldsToUpdate).length > 0) {
             await updateUser(user.id, token, 'profile', profileFieldsToUpdate);
+            successCount++;
         }
         
-        toast({
-          title: 'Profile Updated',
-          description: 'Your profile has been updated successfully.',
-        });
+        if (successCount > 0) {
+          toast({
+            title: 'Profile Updated',
+            description: 'Your profile has been updated successfully.',
+          });
+        } else {
+           toast({
+            title: 'No Changes',
+            description: 'You have not made any changes to save.',
+          });
+        }
         
     } catch (error: any) {
-        success = false;
          toast({
           variant: 'destructive',
           title: 'Update Failed',
@@ -182,11 +211,12 @@ export default function ProfilePage() {
         });
     }
 
-    if (success) {
-      // Manually trigger a storage event to sync other tabs/components
+    if (successCount > 0) {
+      // Re-fetch data from server to ensure UI is in sync with the latest data
+      const freshUserData = await fetchUserProfile(user.id, token);
+      setUser(freshUserData);
+      localStorage.setItem('user', JSON.stringify(freshUserData));
       window.dispatchEvent(new Event('storage'));
-      // Re-fetch user from local storage to update state
-      setUser(getLoggedInUser()); 
       setIsEditing(false);
     }
   }
@@ -230,7 +260,7 @@ export default function ProfilePage() {
   };
 
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="space-y-4">
         <PageHeader title="My Profile" />
@@ -476,7 +506,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
-
-    
