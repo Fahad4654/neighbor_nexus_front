@@ -1,4 +1,6 @@
 
+import _ from 'lodash';
+
 export async function login(identifier: string, password: string): Promise<any> {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (!backendUrl) {
@@ -28,7 +30,6 @@ export async function login(identifier: string, password: string): Promise<any> 
   if (data.user) {
     localStorage.setItem('user', JSON.stringify(data.user));
 
-    // Fetch and store avatar as base64
     if (data.user.profile && data.user.profile.avatarUrl) {
       try {
         const avatarResponse = await fetch(`${backendUrl}${data.user.profile.avatarUrl}`, {
@@ -246,19 +247,40 @@ export async function refreshToken(): Promise<any> {
   }
 }
 
-export async function updateUserProfile(userId: string, token: string, profileData: { bio?: string; address?: string }) {
+export async function updateUser(
+    userId: string, 
+    token: string, 
+    updateType: 'core' | 'profile',
+    data: any
+) {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     if (!backendUrl) {
         throw new Error('Backend URL not configured');
     }
 
-    const payload = {
-        userId,
-        bio: profileData.bio,
-        address: profileData.address,
-    };
+    let endpoint = '';
+    let payload: any = {};
+    const currentUser = getLoggedInUser();
+    if (!currentUser) throw new Error("User not logged in");
 
-    const response = await fetch(`${backendUrl}/profile`, {
+    if (updateType === 'core') {
+        endpoint = `${backendUrl}/users`;
+        payload = {
+            id: userId,
+            ...data,
+            updatedBy: userId
+        };
+    } else if (updateType === 'profile') {
+        endpoint = `${backendUrl}/profile`;
+        payload = {
+            userId,
+            ...data
+        };
+    } else {
+        throw new Error("Invalid update type specified");
+    }
+
+    const response = await fetch(endpoint, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -269,38 +291,20 @@ export async function updateUserProfile(userId: string, token: string, profileDa
 
     if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Could not update profile.");
+        throw new Error(errorData.message || `Could not update ${updateType} info.`);
     }
     
     const updatedData = await response.json();
     
-    const user = getLoggedInUser();
-    if (user) {
-        const updatedUser = { ...user, profile: updatedData.profile };
+    // Update local storage
+    if (updateType === 'core' && updatedData.user) {
+        const updatedUser = { ...currentUser, ..._.omit(updatedData.user, 'profile') };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+    } else if (updateType === 'profile' && updatedData.profile) {
+        const updatedUser = { ...currentUser, profile: updatedData.profile };
         localStorage.setItem('user', JSON.stringify(updatedUser));
     }
 
-
-    // After updating, if there's a new avatar, re-fetch and store it.
-    if (updatedData.profile?.avatarUrl) {
-         try {
-            const avatarResponse = await fetch(`${backendUrl}${updatedData.profile.avatarUrl}`, {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (avatarResponse.ok) {
-              const blob = await avatarResponse.blob();
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                localStorage.setItem('avatarImage', reader.result as string);
-                window.dispatchEvent(new Event('storage'));
-              };
-              reader.readAsDataURL(blob);
-            }
-          } catch (e) {
-            console.error("Failed to fetch and store updated avatar", e);
-          }
-    }
-    
     return updatedData;
 }
 
@@ -329,7 +333,6 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
 
   const result = await response.json();
 
-  // The API response contains the updated profile object with the new avatarUrl
   if (result.profile && result.profile.avatarUrl) {
     const user = getLoggedInUser();
     if (user) {
@@ -337,7 +340,6 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
     
-    // Re-fetch and store the new avatar image
     try {
       const avatarResponse = await fetch(`${backendUrl}${result.profile.avatarUrl}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -347,7 +349,6 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
         const reader = new FileReader();
         reader.onloadend = () => {
           localStorage.setItem('avatarImage', reader.result as string);
-          // This event tells other components (like UserNav) to update their state
           window.dispatchEvent(new Event('storage'));
         };
         reader.readAsDataURL(blob);

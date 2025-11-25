@@ -27,7 +27,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getLoggedInUser, updateUserProfile, uploadAvatar } from '@/lib/auth';
+import { getLoggedInUser, updateUser, uploadAvatar } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -45,11 +45,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/StarRating';
 import { cn } from '@/lib/utils';
+import _ from 'lodash';
 
 type User = {
   id: string;
   firstname: string;
-  lastname: string;
+  lastname:string;
   email: string;
   username: string;
   phoneNumber?: string;
@@ -72,24 +73,14 @@ type User = {
 };
 
 const profileFormSchema = z.object({
+  firstname: z.string().min(2, { message: 'First name must be at least 2 characters.' }),
+  lastname: z.string().min(2, { message: 'Last name must be at least 2 characters.' }),
+  phoneNumber: z.string().optional(),
   bio: z.string().max(160, { message: 'Bio must not be longer than 160 characters.' }).optional(),
   address: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
-
-const InfoField = ({ icon, label, value, isEditing }: { icon: React.ElementType, label: string, value: React.ReactNode, isEditing: boolean }) => {
-    const Icon = icon;
-    return (
-        <FormItem>
-            <FormLabel>{label}</FormLabel>
-            <div className="relative">
-                <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input value={String(value ?? 'N/A')} readOnly className={cn("pl-10 bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")} />
-            </div>
-        </FormItem>
-    );
-};
 
 
 export default function ProfilePage() {
@@ -126,6 +117,9 @@ export default function ProfilePage() {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     values: {
+      firstname: user?.firstname || '',
+      lastname: user?.lastname || '',
+      phoneNumber: user?.phoneNumber || '',
       bio: user?.profile?.bio || '',
       address: user?.profile?.address || '',
     },
@@ -135,6 +129,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
         form.reset({
+            firstname: user.firstname || '',
+            lastname: user.lastname || '',
+            phoneNumber: user.phoneNumber || '',
             bio: user.profile?.bio || '',
             address: user.profile?.address || '',
         });
@@ -152,31 +149,50 @@ export default function ProfilePage() {
       return;
     }
 
+    const { formState: { dirtyFields } } = form;
+    const dirtyFieldNames = Object.keys(dirtyFields);
+    
+    const coreFieldsToUpdate = _.pick(data, _.intersection(dirtyFieldNames, ['firstname', 'lastname', 'phoneNumber']));
+    const profileFieldsToUpdate = _.pick(data, _.intersection(dirtyFieldNames, ['bio', 'address']));
+
+    let success = true;
+
     try {
-      await updateUserProfile(user.id, token, data);
-      
+        if (!_.isEmpty(coreFieldsToUpdate)) {
+            await updateUser(user.id, token, 'core', coreFieldsToUpdate);
+        }
+        if (!_.isEmpty(profileFieldsToUpdate)) {
+            await updateUser(user.id, token, 'profile', profileFieldsToUpdate);
+        }
+        
+        toast({
+          title: 'Profile Updated',
+          description: 'Your profile has been updated successfully.',
+        });
+        
+    } catch (error: any) {
+        success = false;
+         toast({
+          variant: 'destructive',
+          title: 'Update Failed',
+          description: error.message || 'Could not update your profile.',
+        });
+    }
+
+    if (success) {
       const updatedUserFromStorage = getLoggedInUser();
       setUser(updatedUserFromStorage);
       setIsEditing(false);
-
       window.dispatchEvent(new Event('storage'));
-
-      toast({
-        title: 'Profile Updated',
-        description: 'Your profile has been updated successfully.',
-      });
-    } catch (error: any) {
-       toast({
-        variant: 'destructive',
-        title: 'Update Failed',
-        description: error.message || 'Could not update your profile.',
-      });
     }
   }
 
   const handleCancel = () => {
     if (user) {
         form.reset({
+            firstname: user.firstname || '',
+            lastname: user.lastname || '',
+            phoneNumber: user.phoneNumber || '',
             bio: user.profile?.bio || '',
             address: user.profile?.address || '',
         });
@@ -199,7 +215,6 @@ export default function ProfilePage() {
           title: 'Avatar Uploaded',
           description: 'Your new profile picture has been saved.',
         });
-        // The 'storage' event listener will handle updating the avatarSrc
       } catch (error: any) {
         toast({
           variant: 'destructive',
@@ -315,18 +330,32 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormItem>
-                        <FormLabel>First Name</FormLabel>
-                        <FormControl>
-                          <Input value={user.firstname} readOnly className={cn("bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")}/>
-                        </FormControl>
-                      </FormItem>
-                      <FormItem>
-                        <FormLabel>Last Name</FormLabel>
-                        <FormControl>
-                          <Input value={user.lastname} readOnly className={cn("bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")}/>
-                        </FormControl>
-                      </FormItem>
+                       <FormField
+                          control={form.control}
+                          name="firstname"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>First Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} readOnly={!isEditing} className={cn(!isEditing ? 'bg-muted/50' : '')} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="lastname"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Last Name</FormLabel>
+                              <FormControl>
+                                <Input {...field} readOnly={!isEditing} className={cn(!isEditing ? 'bg-muted/50' : '')} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                     </div>
                     <FormField
                       control={form.control}
@@ -363,30 +392,67 @@ export default function ProfilePage() {
                         )}
                       />
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <InfoField icon={UserIcon} label="Username" value={user.username} isEditing={isEditing} />
-                        <InfoField icon={Mail} label="Email" value={user.email} isEditing={isEditing} />
-                        <InfoField icon={Phone} label="Phone Number" value={user.phoneNumber} isEditing={isEditing} />
+                       <FormItem>
+                          <FormLabel>Username</FormLabel>
+                          <div className="relative">
+                              <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input value={user.username} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                          </div>
+                      </FormItem>
+                       <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <div className="relative">
+                              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input value={user.email} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                          </div>
+                      </FormItem>
+                      <FormField
+                          control={form.control}
+                          name="phoneNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone Number</FormLabel>
+                                <div className="relative">
+                                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input {...field} readOnly={!isEditing} className={cn("pl-10", !isEditing ? 'bg-muted/50' : '')} />
+                                </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                          <FormItem>
                             <FormLabel>Geo Location</FormLabel>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={geoDisplayValue} readOnly className={cn("pl-10 bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")} />
+                                <Input value={geoDisplayValue} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
                             </div>
                         </FormItem>
-                        <InfoField icon={KeyRound} label="Created By" value={user.createdBy} isEditing={isEditing} />
-                        <InfoField icon={KeyRound} label="Updated By" value={user.updatedBy} isEditing={isEditing} />
+                        <FormItem>
+                            <FormLabel>Created By</FormLabel>
+                            <div className="relative">
+                                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input value={user.createdBy || 'N/A'} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                            </div>
+                        </FormItem>
+                        <FormItem>
+                            <FormLabel>Updated By</FormLabel>
+                            <div className="relative">
+                                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input value={user.updatedBy || 'N/A'} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
+                            </div>
+                        </FormItem>
                         <FormItem>
                             <FormLabel>Created At</FormLabel>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'} readOnly className={cn("pl-10 bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")} />
+                                <Input value={user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
                             </div>
                         </FormItem>
                         <FormItem>
                             <FormLabel>Updated At</FormLabel>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'NA'} readOnly className={cn("pl-10 bg-muted/50", isEditing && "bg-red-50 dark:bg-red-950/30")} />
+                                <Input value={user.updatedAt ? format(new Date(user.updatedAt), 'PPP') : 'NA'} readOnly className="pl-10 bg-red-50 dark:bg-red-950/30" />
                             </div>
                         </FormItem>
                     </div>
