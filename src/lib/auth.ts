@@ -259,7 +259,7 @@ export async function updateUserProfile(userId: string, token: string, profileDa
     };
 
     const response = await fetch(`${backendUrl}/profile`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
