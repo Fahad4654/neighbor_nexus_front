@@ -29,6 +29,30 @@ export async function login(identifier: string, password: string): Promise<any> 
     const { profile, ...restOfUser } = data.user;
     const completeUser = { ...restOfUser, ...profile };
     localStorage.setItem('user', JSON.stringify(completeUser));
+
+    // Fetch and store avatar as base64
+    if (profile?.avatarUrl) {
+      try {
+        const avatarResponse = await fetch(`${backendUrl}${profile.avatarUrl}`, {
+          headers: {
+            'Authorization': `Bearer ${data.accessToken}`
+          }
+        });
+        if (avatarResponse.ok) {
+          const blob = await avatarResponse.blob();
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            localStorage.setItem('avatarImage', reader.result as string);
+          };
+          reader.readAsDataURL(blob);
+        }
+      } catch (e) {
+        console.error("Failed to fetch and store avatar", e);
+        localStorage.removeItem('avatarImage');
+      }
+    } else {
+      localStorage.removeItem('avatarImage');
+    }
   }
 
   return data;
@@ -147,6 +171,7 @@ export async function logout() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
+  localStorage.removeItem('avatarImage');
 }
 
 export function getLoggedInUser() {
@@ -174,8 +199,6 @@ export async function fetchUserProfile(userId: string, token: string) {
     }
 
     const data = await response.json();
-    // The new login response structure means we might not need this function
-    // But if we do, we need to combine user and profile
     const { profile, ...restOfUser } = data;
     return { ...restOfUser, ...profile };
 }
@@ -241,5 +264,28 @@ export async function updateUserProfile(userId: string, token: string, profileDa
         throw new Error(errorData.message || "Could not update profile.");
     }
     
-    return await response.json();
+    const updatedData = await response.json();
+
+    // After updating, if there's a new avatar, re-fetch and store it.
+    if (updatedData.user?.profile?.avatarUrl) {
+         try {
+            const avatarResponse = await fetch(`${backendUrl}${updatedData.user.profile.avatarUrl}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (avatarResponse.ok) {
+              const blob = await avatarResponse.blob();
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                localStorage.setItem('avatarImage', reader.result as string);
+                 // We might need to trigger a storage event to update other components
+                window.dispatchEvent(new Event('storage'));
+              };
+              reader.readAsDataURL(blob);
+            }
+          } catch (e) {
+            console.error("Failed to fetch and store updated avatar", e);
+          }
+    }
+    
+    return updatedData;
 }

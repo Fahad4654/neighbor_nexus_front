@@ -36,70 +36,32 @@ export function UserNav() {
     const updateUserState = () => {
       const loggedInUser = getLoggedInUser();
       setUser(loggedInUser);
+      if (loggedInUser) {
+        const storedAvatar = localStorage.getItem('avatarImage');
+        if (storedAvatar) {
+          setAvatarSrc(storedAvatar);
+        } else {
+          setAvatarSrc(`https://avatar.vercel.sh/${loggedInUser.username}.png`);
+        }
+      } else {
+        setAvatarSrc(undefined);
+      }
     };
 
     updateUserState();
 
-    // Listen for changes in localStorage (e.g., after login/logout)
+    // Listen for changes in localStorage (e.g., after login/logout/profile update)
     window.addEventListener('storage', updateUserState);
     return () => {
       window.removeEventListener('storage', updateUserState);
     };
   }, []);
 
-  useEffect(() => {
-    const fetchAvatar = async () => {
-      if (user && user.avatarUrl) {
-        const token = localStorage.getItem('accessToken');
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-        if (token && backendUrl) {
-          try {
-            const response = await fetch(`${backendUrl}${user.avatarUrl}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            });
-
-            if (response.ok) {
-              const blob = await response.blob();
-              const objectUrl = URL.createObjectURL(blob);
-              setAvatarSrc(objectUrl);
-            } else {
-              // If fetching fails, fall back to the vercel avatar
-              setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
-            }
-          } catch (error) {
-            console.error('Failed to fetch avatar:', error);
-            setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
-          }
-        } else {
-           // Fallback if no token or backend URL
-           setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
-        }
-      } else if (user?.username) {
-        // Fallback if no avatarUrl
-        setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
-      } else {
-        setAvatarSrc(undefined);
-      }
-    };
-    
-    fetchAvatar();
-
-    return () => {
-      if (avatarSrc && avatarSrc.startsWith('blob:')) {
-        URL.revokeObjectURL(avatarSrc);
-      }
-    };
-  }, [user]);
-
-
   const handleLogout = async () => {
     await logout();
     setUser(null);
     setAvatarSrc(undefined);
-    // Notify other components that user has logged out
+    // This event is now more critical to ensure all tabs update
     window.dispatchEvent(new Event('storage')); 
     router.push('/login');
   };

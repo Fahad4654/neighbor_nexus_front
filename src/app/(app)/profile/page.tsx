@@ -100,46 +100,28 @@ export default function ProfilePage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchAvatar = async () => {
-      if (user && user.avatarUrl) {
-        const token = localStorage.getItem('accessToken');
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-        if (token && backendUrl) {
-          try {
-            const response = await fetch(`${backendUrl}${user.avatarUrl}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            });
-
-            if (response.ok) {
-              const blob = await response.blob();
-              const objectUrl = URL.createObjectURL(blob);
-              setAvatarSrc(objectUrl);
-            } else {
-              setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
-            }
-          } catch (error) {
-            console.error('Failed to fetch avatar:', error);
-            setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
-          }
+    const updateUserState = () => {
+      const loggedInUser = getLoggedInUser();
+      setUser(loggedInUser);
+      if (loggedInUser) {
+        const storedAvatar = localStorage.getItem('avatarImage');
+        if (storedAvatar) {
+          setAvatarSrc(storedAvatar);
         } else {
-           setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
+          setAvatarSrc(`https://avatar.vercel.sh/${loggedInUser.username}.png`);
         }
-      } else if (user?.username) {
-        setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
+      } else {
+        setAvatarSrc(undefined);
       }
     };
-    
-    fetchAvatar();
 
+    updateUserState();
+
+    window.addEventListener('storage', updateUserState);
     return () => {
-        if (avatarSrc && avatarSrc.startsWith('blob:')) {
-            URL.revokeObjectURL(avatarSrc);
-        }
+      window.removeEventListener('storage', updateUserState);
     };
-  }, [user]);
+  }, []);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -175,12 +157,19 @@ export default function ProfilePage() {
     }
 
     try {
-      await updateUserProfile(user.id, token, data);
+      const result = await updateUserProfile(user.id, token, data);
       
-      const updatedUser = { ...user, ...data };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
+      // The API response contains the updated user object
+      const updatedUserFromApi = result.user;
+      const { profile, ...restOfUser } = updatedUserFromApi;
+      const completeUser = { ...restOfUser, ...profile };
+      
+      localStorage.setItem('user', JSON.stringify(completeUser));
+      setUser(completeUser);
       setIsEditing(false);
+
+      // This will trigger other components (like UserNav) to update
+      window.dispatchEvent(new Event('storage'));
 
       toast({
         title: 'Profile Updated',
