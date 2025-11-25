@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { getLoggedInUser, logout, fetchUserProfile } from '@/lib/auth';
+import { getLoggedInUser, logout } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
@@ -33,42 +33,23 @@ export function UserNav() {
   const router = useRouter();
 
   useEffect(() => {
-    const updateUser = async () => {
-      let loggedInUser = getLoggedInUser();
-      
-      if (loggedInUser) {
-        if (!loggedInUser.avatarUrl) {
-          const token = localStorage.getItem('accessToken');
-          if (token) {
-            try {
-              const profile = await fetchUserProfile(loggedInUser.id, token);
-              const fullUser = { ...loggedInUser, ...profile };
-              localStorage.setItem('user', JSON.stringify(fullUser));
-              setUser(fullUser);
-            } catch (error) {
-              console.error('Failed to fetch user profile:', error);
-              setUser(loggedInUser);
-            }
-          } else {
-            setUser(loggedInUser);
-          }
-        } else {
-          setUser(loggedInUser);
-        }
-      }
+    const updateUserState = () => {
+      const loggedInUser = getLoggedInUser();
+      setUser(loggedInUser);
     };
 
-    updateUser();
+    updateUserState();
 
-    const handleStorageChange = () => {
-      updateUser();
+    // Listen for changes in localStorage (e.g., after login/logout)
+    window.addEventListener('storage', updateUserState);
+    return () => {
+      window.removeEventListener('storage', updateUserState);
     };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-
   }, []);
 
   useEffect(() => {
+    // This effect runs when the user state changes.
+    // It fetches the avatar image if the URL is present.
     const fetchAvatar = async () => {
       if (user?.avatarUrl) {
         const token = localStorage.getItem('accessToken');
@@ -87,6 +68,7 @@ export function UserNav() {
               const objectUrl = URL.createObjectURL(blob);
               setAvatarSrc(objectUrl);
             } else {
+              // If fetching fails, fall back to the vercel avatar
               setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
             }
           } catch (error) {
@@ -94,20 +76,28 @@ export function UserNav() {
             setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
           }
         } else {
+           // Fallback if no token or backend URL
            setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
         }
       } else if (user?.username) {
+        // Fallback if no avatarUrl
         setAvatarSrc(`https://avatar.vercel.sh/${user.username}.png`);
+      } else {
+        setAvatarSrc(undefined);
       }
     };
     
     fetchAvatar();
 
+    // Cleanup function to revoke the blob URL when the component unmounts
+    // or the user changes, to prevent memory leaks.
     return () => {
       if (avatarSrc && avatarSrc.startsWith('blob:')) {
         URL.revokeObjectURL(avatarSrc);
       }
     };
+  // The dependency array is only `user`. This effect should only re-run
+  // when the user object itself changes.
   }, [user]);
 
 
@@ -115,8 +105,9 @@ export function UserNav() {
     await logout();
     setUser(null);
     setAvatarSrc(undefined);
+    // Notify other components that user has logged out
+    window.dispatchEvent(new Event('storage')); 
     router.push('/login');
-    router.refresh();
   };
 
   if (!user) {

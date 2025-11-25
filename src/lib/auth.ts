@@ -26,7 +26,9 @@ export async function login(identifier: string, password: string): Promise<any> 
     localStorage.setItem('refreshToken', data.refreshToken);
   }
   if (data.user) {
-    localStorage.setItem('user', JSON.stringify(data.user));
+    const { profile, ...restOfUser } = data.user;
+    const completeUser = { ...restOfUser, ...profile };
+    localStorage.setItem('user', JSON.stringify(completeUser));
   }
 
   return data;
@@ -172,7 +174,10 @@ export async function fetchUserProfile(userId: string, token: string) {
     }
 
     const data = await response.json();
-    return data.profile;
+    // The new login response structure means we might not need this function
+    // But if we do, we need to combine user and profile
+    const { profile, ...restOfUser } = data;
+    return { ...restOfUser, ...profile };
 }
 
 
@@ -221,8 +226,20 @@ export async function updateUserProfile(userId: string, token: string, profileDa
     if (!backendUrl) {
         throw new Error('Backend URL not configured');
     }
-    console.log('Updating profile for user:', userId, 'with data:', profileData);
-    // This is where the API call to update the profile would go.
-    // For now, we'll just log it and return a success message.
-    return { success: true, message: "Profile updated successfully (simulated)." };
+
+    const response = await fetch(`${backendUrl}/users/${userId}/profile`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profileData)
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Could not update profile.");
+    }
+    
+    return await response.json();
 }

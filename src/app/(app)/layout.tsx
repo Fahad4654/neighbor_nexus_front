@@ -25,6 +25,13 @@ export default function AppLayout({
     };
 
     checkUser();
+
+    // Listen for storage changes to handle logout from other tabs
+    window.addEventListener('storage', checkUser);
+
+    return () => {
+      window.removeEventListener('storage', checkUser);
+    };
   }, [router]);
 
   if (loading) {

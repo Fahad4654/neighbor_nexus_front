@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -140,13 +139,11 @@ export default function ProfilePage() {
     
     fetchAvatar();
 
-    const cleanup = () => {
+    return () => {
         if (avatarSrc && avatarSrc.startsWith('blob:')) {
             URL.revokeObjectURL(avatarSrc);
         }
     };
-
-    return cleanup;
   }, [user]);
 
   const form = useForm<ProfileFormValues>({
