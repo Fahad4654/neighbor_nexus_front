@@ -97,25 +97,24 @@ export default function ProfilePage() {
       const loggedInUser = getLoggedInUser();
       const token = localStorage.getItem('accessToken');
 
+      // Attempt to load avatar from localStorage immediately for faster UI
+      const storedAvatar = localStorage.getItem('avatarImage');
+      if (storedAvatar) {
+        setAvatarSrc(storedAvatar);
+      } else if (loggedInUser) {
+        setAvatarSrc(`https://avatar.vercel.sh/${loggedInUser.username}.png`);
+      }
+
       if (loggedInUser && token) {
         try {
           const freshUserData = await fetchUserProfile(loggedInUser.id, token);
           setUser(freshUserData);
           localStorage.setItem('user', JSON.stringify(freshUserData)); // Sync localStorage
-          
-          const storedAvatar = localStorage.getItem('avatarImage');
-          if (storedAvatar) {
-            setAvatarSrc(storedAvatar);
-          } else if (freshUserData.profile?.avatarUrl) {
-             // This case is for when the page loads but avatar isn't in local storage yet
-             // The login function now handles fetching and storing it.
-          } else {
-            setAvatarSrc(`https://avatar.vercel.sh/${freshUserData.username}.png`);
-          }
         } catch (error) {
           console.error("Failed to fetch profile", error);
           // Fallback to localStorage if API fails
-          setUser(loggedInUser);
+          const storedUser = getLoggedInUser();
+          if (storedUser) setUser(storedUser);
         }
       }
       setLoading(false);
