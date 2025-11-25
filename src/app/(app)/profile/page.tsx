@@ -101,7 +101,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchAvatar = async () => {
-      if (user?.avatarUrl) {
+      if (user && user.avatarUrl) {
         const token = localStorage.getItem('accessToken');
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
