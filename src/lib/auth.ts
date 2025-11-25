@@ -27,7 +27,9 @@ export async function login(identifier: string, password: string): Promise<any> 
   }
   if (data.user) {
     const { profile, ...restOfUser } = data.user;
-    const completeUser = { ...restOfUser, ...profile };
+    // Make sure user.id is not overwritten by profile.id
+    const { id: profileId, ...profileData } = profile || {};
+    const completeUser = { ...restOfUser, ...profileData };
     localStorage.setItem('user', JSON.stringify(completeUser));
 
     // Fetch and store avatar as base64
@@ -324,7 +326,8 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
   if (result.profile && result.profile.avatarUrl) {
     const user = getLoggedInUser();
     if (user) {
-      const updatedUser = { ...user, ...result.profile };
+       const {id: profileId, ...profileData} = result.profile;
+      const updatedUser = { ...user, ...profileData };
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
     
