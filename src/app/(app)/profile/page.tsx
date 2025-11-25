@@ -337,7 +337,7 @@ export default function ProfilePage() {
                             <FormItem>
                               <FormLabel>First Name</FormLabel>
                               <FormControl>
-                                <Input {...field} readOnly={!isEditing} className={cn(!isEditing ? 'bg-muted/50' : '')} />
+                                <Input {...field} disabled={!isEditing} className={cn(!isEditing ? 'bg-muted' : '')} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -350,7 +350,7 @@ export default function ProfilePage() {
                             <FormItem>
                               <FormLabel>Last Name</FormLabel>
                               <FormControl>
-                                <Input {...field} readOnly={!isEditing} className={cn(!isEditing ? 'bg-muted/50' : '')} />
+                                <Input {...field} disabled={!isEditing} className={cn(!isEditing ? 'bg-muted' : '')} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -366,9 +366,9 @@ export default function ProfilePage() {
                           <FormControl>
                             <Textarea
                               placeholder="Tell us a little bit about yourself"
-                              className={cn("resize-none", !isEditing ? 'bg-muted/50' : '')}
+                              className={cn("resize-none", !isEditing ? 'bg-muted' : '')}
                               {...field}
-                              readOnly={!isEditing}
+                              disabled={!isEditing}
                               />
                           </FormControl>
                           <FormMessage />
@@ -384,7 +384,7 @@ export default function ProfilePage() {
                             <FormControl>
                                <div className="relative">
                                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input placeholder="123 Main St, Anytown, USA" {...field} readOnly={!isEditing} className={cn("pl-10", !isEditing ? 'bg-muted/50' : '')} />
+                                <Input placeholder="123 Main St, Anytown, USA" {...field} disabled={!isEditing} className={cn("pl-10", !isEditing ? 'bg-muted' : '')} />
                                </div>
                             </FormControl>
                             <FormMessage />
@@ -414,7 +414,7 @@ export default function ProfilePage() {
                               <FormLabel>Phone Number</FormLabel>
                                 <div className="relative">
                                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                  <Input {...field} readOnly={!isEditing} className={cn("pl-10", !isEditing ? 'bg-muted/50' : '')} />
+                                  <Input {...field} disabled={!isEditing} className={cn("pl-10", !isEditing ? 'bg-muted' : '')} />
                                 </div>
                               <FormMessage />
                             </FormItem>
