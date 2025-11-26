@@ -42,13 +42,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <UserNav />
         </header>
-        <div className="flex-1 overflow-auto">
-            <main className="p-4 lg:p-6">
-              <div className="flex flex-col gap-4 lg:gap-6">
-                {children}
-              </div>
-            </main>
-        </div>
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
+          <div className="flex flex-col gap-4 lg:gap-6">
+            {children}
+          </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );
