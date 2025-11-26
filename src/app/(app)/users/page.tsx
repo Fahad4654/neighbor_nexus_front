@@ -100,19 +100,19 @@ export default function UsersPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table wrapperClassName="max-h-[750px] overflow-y-auto" className="min-w-[1200px]">
+            <Table wrapperClassName="max-h-[750px] overflow-auto" className="min-w-[1200px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[150px] truncate">Username</TableHead>
-                  <TableHead className="w-[150px] truncate">First Name</TableHead>
-                  <TableHead className="w-[150px] truncate">Last Name</TableHead>
-                  <TableHead className="w-[200px] truncate">Email</TableHead>
-                  <TableHead className="w-[150px] truncate">Phone</TableHead>
-                  <TableHead className="w-[100px] truncate">Status</TableHead>
-                  <TableHead className="w-[100px] truncate">Role</TableHead>
-                  <TableHead className="w-[100px] truncate">Rating</TableHead>
-                  <TableHead className="w-[150px] truncate">Geo Location</TableHead>
-                  <TableHead className="w-[150px] truncate">Joined</TableHead>
+                  <TableHead className="w-[150px] truncate sticky top-0 z-10 bg-card">Username</TableHead>
+                  <TableHead className="w-[150px] truncate sticky top-0 z-10 bg-card">First Name</TableHead>
+                  <TableHead className="w-[150px] truncate sticky top-0 z-10 bg-card">Last Name</TableHead>
+                  <TableHead className="w-[200px] truncate sticky top-0 z-10 bg-card">Email</TableHead>
+                  <TableHead className="w-[150px] truncate sticky top-0 z-10 bg-card">Phone</TableHead>
+                  <TableHead className="w-[100px] truncate sticky top-0 z-10 bg-card">Status</TableHead>
+                  <TableHead className="w-[100px] truncate sticky top-0 z-10 bg-card">Role</TableHead>
+                  <TableHead className="w-[100px] truncate sticky top-0 z-10 bg-card">Rating</TableHead>
+                  <TableHead className="w-[150px] truncate sticky top-0 z-10 bg-card">Geo Location</TableHead>
+                  <TableHead className="w-[150px] truncate sticky top-0 z-10 bg-card">Joined</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
