@@ -227,10 +227,18 @@ export async function fetchAllUsers(token: string) {
     if (!backendUrl) {
         throw new Error('Backend URL not configured');
     }
-    const response = await fetch(`${backendUrl}/users`, {
+    const response = await fetch(`${backendUrl}/users/all`, {
+        method: 'POST',
         headers: {
-            'Authorization': `Bearer ${token}`
-        }
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "order": "createdAt",
+          "asc": "DESC",
+          "page": 1,
+          "pageSize": 10
+        })
     });
 
     if (!response.ok) {
@@ -238,7 +246,7 @@ export async function fetchAllUsers(token: string) {
         throw new Error(errorData.message || 'Failed to fetch users');
     }
     const data = await response.json();
-    return data.users;
+    return data.usersList.data;
 }
 
 
@@ -400,4 +408,5 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
 
   return result;
 }
+
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -105,7 +106,7 @@ export default function UsersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {user.isAdmin && <Badge variant="destructive">Admin</Badge>}
+                      {user.isAdmin ? <Badge variant="destructive">Admin</Badge> : 'User'}
                     </TableCell>
                     <TableCell>
                       {user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'}
