@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   LogIn,
   UserPlus,
+  Users,
 } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from './ui/sidebar';
 import Link from 'next/link';
@@ -16,12 +17,31 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { getLoggedInUser } from '@/lib/auth';
 
+type User = {
+  id: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  username: string;
+  isAdmin?: boolean;
+};
+
 export function Nav() {
   const pathname = usePathname();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    setUser(getLoggedInUser());
+    // This function will be called on mount and on storage events
+    const updateUserState = () => {
+      setUser(getLoggedInUser());
+    };
+    
+    updateUserState(); // Initial check
+    window.addEventListener('storage', updateUserState); // Listen for changes
+    
+    return () => {
+      window.removeEventListener('storage', updateUserState); // Cleanup
+    };
   }, []);
 
   const navItems = [
@@ -30,6 +50,7 @@ export function Nav() {
     { href: '/skills', label: 'Skills', icon: Lightbulb, show: 'loggedIn' },
     { href: '/transactions', label: 'Transactions', icon: ArrowRightLeft, show: 'loggedIn' },
     { href: '/verify', label: 'Verify', icon: ShieldCheck, show: 'loggedIn' },
+    { href: '/users', label: 'Users', icon: Users, show: 'adminOnly' },
     { href: '/login', label: 'Login', icon: LogIn, show: 'loggedOut' },
     { href: '/signup', label: 'Sign Up', icon: UserPlus, show: 'loggedOut' },
   ];
@@ -37,7 +58,15 @@ export function Nav() {
   return (
     <SidebarMenu>
       {navItems
-        .filter(item => (user ? item.show === 'loggedIn' : item.show === 'loggedOut'))
+        .filter(item => {
+          if (user) {
+            if (item.show === 'adminOnly') {
+              return user.isAdmin;
+            }
+            return item.show === 'loggedIn' || item.show === 'adminOnly';
+          }
+          return item.show === 'loggedOut';
+        })
         .map((item) => (
         <SidebarMenuItem key={item.href}>
           <SidebarMenuButton

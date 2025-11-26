@@ -23,7 +23,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { placeholderImages } from '@/lib/placeholder-images.json';
-import { getLoggedInUser, fetchAllUsers } from '@/lib/auth';
+import { getLoggedInUser } from '@/lib/auth';
 import { format } from 'date-fns';
 
 type User = {
@@ -48,32 +48,7 @@ const UserAvatar = ({ avatarId }: { avatarId: string }) => {
 };
 
 export default function Dashboard() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAdminAndFetchUsers = async () => {
-      const loggedInUser = getLoggedInUser();
-      const token = localStorage.getItem('accessToken');
-      
-      if (loggedInUser && loggedInUser.isAdmin) {
-        setIsAdmin(true);
-        if (token) {
-          try {
-            const allUsers = await fetchAllUsers(token);
-            setUsers(allUsers);
-          } catch (error) {
-            console.error("Failed to fetch users", error);
-          }
-        }
-      }
-      setLoading(false);
-    };
-
-    checkAdminAndFetchUsers();
-  }, []);
-
+  
   const stats = [
     {
       title: 'Tools Shared',
@@ -162,47 +137,6 @@ export default function Dashboard() {
           </Table>
         </CardContent>
       </Card>
-      
-      {isAdmin && !loading && (
-        <Card>
-          <CardHeader>
-             <CardTitle className="flex items-center gap-2">
-              <Users className="h-6 w-6" />
-              User Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Joined</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.username}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.firstname} {user.lastname}</TableCell>
-                    <TableCell>
-                       <Badge variant={user.isVerified ? 'secondary' : 'outline'}>
-                        {user.isVerified ? 'Verified' : 'Pending'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
