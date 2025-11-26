@@ -1,10 +1,14 @@
+
+'use client';
+
+import { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ArrowRightLeft, Lightbulb, UserCheck, Wrench } from 'lucide-react';
+import { ArrowRightLeft, Lightbulb, UserCheck, Wrench, Users } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { Transaction, transactions } from '@/lib/data';
 import {
@@ -19,6 +23,19 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { placeholderImages } from '@/lib/placeholder-images.json';
+import { getLoggedInUser, fetchAllUsers } from '@/lib/auth';
+import { format } from 'date-fns';
+
+type User = {
+  id: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  username: string;
+  isAdmin?: boolean;
+  isVerified?: boolean;
+  createdAt?: string;
+};
 
 const UserAvatar = ({ avatarId }: { avatarId: string }) => {
   const avatar = placeholderImages.find((img) => img.id === avatarId);
@@ -31,6 +48,32 @@ const UserAvatar = ({ avatarId }: { avatarId: string }) => {
 };
 
 export default function Dashboard() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAdminAndFetchUsers = async () => {
+      const loggedInUser = getLoggedInUser();
+      const token = localStorage.getItem('accessToken');
+      
+      if (loggedInUser && loggedInUser.isAdmin) {
+        setIsAdmin(true);
+        if (token) {
+          try {
+            const allUsers = await fetchAllUsers(token);
+            setUsers(allUsers);
+          } catch (error) {
+            console.error("Failed to fetch users", error);
+          }
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAdminAndFetchUsers();
+  }, []);
+
   const stats = [
     {
       title: 'Tools Shared',
@@ -119,6 +162,47 @@ export default function Dashboard() {
           </Table>
         </CardContent>
       </Card>
+      
+      {isAdmin && !loading && (
+        <Card>
+          <CardHeader>
+             <CardTitle className="flex items-center gap-2">
+              <Users className="h-6 w-6" />
+              User Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Username</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.username}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.firstname} {user.lastname}</TableCell>
+                    <TableCell>
+                       <Badge variant={user.isVerified ? 'secondary' : 'outline'}>
+                        {user.isVerified ? 'Verified' : 'Pending'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

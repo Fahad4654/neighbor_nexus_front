@@ -1,4 +1,5 @@
 
+
 import _ from 'lodash';
 
 export async function login(identifier: string, password: string): Promise<any> {
@@ -221,6 +222,25 @@ export async function fetchUserProfile(userId: string, token: string) {
     return data;
 }
 
+export async function fetchAllUsers(token: string) {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+    }
+    const response = await fetch(`${backendUrl}/users`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch users');
+    }
+    const data = await response.json();
+    return data.users;
+}
+
 
 export async function refreshToken(): Promise<any> {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -380,3 +400,4 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
 
   return result;
 }
+
