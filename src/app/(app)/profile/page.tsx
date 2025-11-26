@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -90,6 +91,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -217,6 +219,7 @@ export default function ProfilePage() {
       localStorage.setItem('user', JSON.stringify(freshUserData));
       window.dispatchEvent(new Event('storage'));
       setIsEditing(false);
+      router.refresh();
     }
   }
 
@@ -248,6 +251,7 @@ export default function ProfilePage() {
           title: 'Avatar Uploaded',
           description: 'Your new profile picture has been saved.',
         });
+        router.refresh();
       } catch (error: any) {
         toast({
           variant: 'destructive',
@@ -505,3 +509,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
