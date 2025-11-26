@@ -1,6 +1,8 @@
 
 
 import _ from 'lodash';
+import { api } from './api';
+
 
 export async function login(identifier: string, password: string): Promise<any> {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -164,32 +166,34 @@ export async function resetPassword(identifier: string, newPassword: string): Pr
 
 
 export async function logout() {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-  if (!backendUrl) {
-    console.error('Backend URL is not configured');
-  }
-
   const refreshToken = localStorage.getItem('refreshToken');
-  if (refreshToken && backendUrl) {
+  
+  if (refreshToken) {
     try {
-      await fetch(`${backendUrl}/auth/logout`, {
+      // The `api` function will handle the backend URL and auth headers
+      await api('/auth/logout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ refreshToken }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
     } catch (error) {
-      console.error('Logout failed on the server:', error);
+      // Even if server-side logout fails, proceed with client-side cleanup.
+      console.error('Server logout failed, proceeding with client cleanup:', error);
     }
   }
 
+  // Clear all local session data
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
   localStorage.removeItem('avatarImage');
+  
+  // Dispatch event to notify other tabs/components
   window.dispatchEvent(new Event('storage'));
 }
+
 
 export function getLoggedInUser() {
   if (typeof window === 'undefined') {
@@ -199,53 +203,28 @@ export function getLoggedInUser() {
   return user ? JSON.parse(user) : null;
 }
 
-export async function fetchUserProfile(userId: string, token: string) {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    if (!backendUrl) {
-        throw new Error('Backend URL not configured');
-    }
-    const response = await fetch(`${backendUrl}/users/${userId}`, {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch user profile');
-    }
-
-    const data = await response.json();
+export async function fetchUserProfile(userId: string) {
+    const data = await api(`/users/${userId}`);
     if (data.user && data.profile) {
         return { ...data.user, profile: data.profile };
     }
     return data;
 }
 
-export async function fetchAllUsers(token: string) {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    if (!backendUrl) {
-        throw new Error('Backend URL not configured');
-    }
-    const response = await fetch(`${backendUrl}/users/all`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          "order": "createdAt",
-          "asc": "DESC",
-          "page": 1,
-          "pageSize": 10
-        })
-    });
 
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch users');
-    }
-    const data = await response.json();
+export async function fetchAllUsers() {
+    const data = await api('/users/all', {
+      method: 'POST',
+      body: JSON.stringify({
+        order: 'createdAt',
+        asc: 'DESC',
+        page: 1,
+        pageSize: 10,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     return data.usersList.data;
 }
 
@@ -273,7 +252,8 @@ export async function refreshToken(): Promise<any> {
     const data = await response.json();
 
     if (!response.ok) {
-      await logout();
+      // If refresh fails, log out the user
+      await logout(); 
       window.location.href = '/login';
       throw new Error(data.message || 'Session expired. Please log in again.');
     }
@@ -284,37 +264,31 @@ export async function refreshToken(): Promise<any> {
 
     return data;
   } catch (error) {
+    // Ensure logout happens even if fetch itself fails
     await logout();
     window.location.href = '/login';
     throw error;
   }
 }
 
+
 export async function updateUser(
     userId: string, 
-    token: string, 
     updateType: 'core' | 'profile',
     data: any
 ) {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    if (!backendUrl) {
-        throw new Error('Backend URL not configured');
-    }
-
     let endpoint = '';
     let payload: any = {};
-    const currentUser = getLoggedInUser();
-    if (!currentUser) throw new Error("User not logged in");
 
     if (updateType === 'core') {
-        endpoint = `${backendUrl}/users`;
+        endpoint = `/users`;
         payload = {
             id: userId,
             ...data,
             updatedBy: userId
         };
     } else if (updateType === 'profile') {
-        endpoint = `${backendUrl}/profile`;
+        endpoint = `/profile`;
          payload = {
             userId: userId,
             ...data
@@ -323,21 +297,11 @@ export async function updateUser(
         throw new Error("Invalid update type specified");
     }
 
-    const response = await fetch(endpoint, {
+    const updatedData = await api(endpoint, {
         method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' }
     });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Could not update ${updateType} info.`);
-    }
-    
-    const updatedData = await response.json();
     
     // Update local storage
     const storedUser = getLoggedInUser();
@@ -350,12 +314,11 @@ export async function updateUser(
             localStorage.setItem('user', JSON.stringify(updatedUser));
         }
     }
-    
 
     return updatedData;
 }
 
-export async function uploadAvatar(userId: string, token: string, file: File) {
+export async function uploadAvatar(userId: string, file: File) {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (!backendUrl) {
     throw new Error('Backend URL not configured');
@@ -365,20 +328,17 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
   formData.append('profile_pic', file);
   formData.append('userId', userId);
 
-  const response = await fetch(`${backendUrl}/profile/upload-avatar`, {
+  // We use the api function here, but note that it sets Content-Type to application/json by default
+  // so we need to remove it to let the browser set the correct multipart/form-data header.
+  const result = await api('/profile/upload-avatar', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
     body: formData,
+    headers: {
+        // Let the browser set the Content-Type for FormData
+        'Content-Type': undefined, 
+    }
   });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Could not upload avatar.');
-  }
-
-  const result = await response.json();
 
   if (result.profile && result.profile.avatarUrl) {
     const user = getLoggedInUser();
@@ -389,6 +349,7 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
     }
     
     try {
+      const token = localStorage.getItem('accessToken');
       const avatarResponse = await fetch(`${backendUrl}${result.profile.avatarUrl}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -408,5 +369,3 @@ export async function uploadAvatar(userId: string, token: string, file: File) {
 
   return result;
 }
-
-

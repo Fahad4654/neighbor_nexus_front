@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -24,6 +25,7 @@ import PageHeader from '@/components/PageHeader';
 import { getLoggedInUser, fetchAllUsers } from '@/lib/auth';
 import Loading from '@/app/loading';
 import { Users, Star } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 type User = {
   id: string;
@@ -46,30 +48,34 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     const checkAdminAndFetchUsers = async () => {
       const loggedInUser = getLoggedInUser();
-      const token = localStorage.getItem('accessToken');
 
       if (!loggedInUser || !loggedInUser.isAdmin) {
         router.push('/dashboard'); // Redirect if not an admin
         return;
       }
       
-      if (token) {
-        try {
-          const allUsers = await fetchAllUsers(token);
-          setUsers(allUsers);
-        } catch (error) {
-          console.error("Failed to fetch users", error);
-        }
+      try {
+        const allUsers = await fetchAllUsers();
+        setUsers(allUsers);
+      } catch (error: any) {
+        console.error("Failed to fetch users", error);
+        toast({
+            variant: 'destructive',
+            title: 'Error fetching users',
+            description: error.message || 'Could not load user data.',
+        });
       }
+      
       setLoading(false);
     };
 
     checkAdminAndFetchUsers();
-  }, [router]);
+  }, [router, toast]);
 
   if (loading) {
     return <Loading />;

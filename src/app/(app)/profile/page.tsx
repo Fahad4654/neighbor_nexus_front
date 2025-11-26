@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -97,7 +98,6 @@ export default function ProfilePage() {
     const loadUserData = async () => {
       setLoading(true);
       const loggedInUser = getLoggedInUser();
-      const token = localStorage.getItem('accessToken');
 
       // Attempt to load avatar from localStorage immediately for faster UI
       const storedAvatar = localStorage.getItem('avatarImage');
@@ -107,9 +107,9 @@ export default function ProfilePage() {
         setAvatarSrc(`https://avatar.vercel.sh/${loggedInUser.username}.png`);
       }
 
-      if (loggedInUser && token) {
+      if (loggedInUser) {
         try {
-          const freshUserData = await fetchUserProfile(loggedInUser.id, token);
+          const freshUserData = await fetchUserProfile(loggedInUser.id);
           setUser(freshUserData);
           localStorage.setItem('user', JSON.stringify(freshUserData)); // Sync localStorage
         } catch (error) {
@@ -164,8 +164,7 @@ export default function ProfilePage() {
   }, [user, form]);
 
   async function onSubmit(data: ProfileFormValues) {
-    const token = localStorage.getItem('accessToken');
-    if (!user || !token) {
+    if (!user) {
       toast({
         variant: 'destructive',
         title: 'Authentication Error',
@@ -183,11 +182,11 @@ export default function ProfilePage() {
     
     try {
         if (Object.keys(coreFieldsToUpdate).length > 0) {
-            await updateUser(user.id, token, 'core', coreFieldsToUpdate);
+            await updateUser(user.id, 'core', coreFieldsToUpdate);
             successCount++;
         }
         if (Object.keys(profileFieldsToUpdate).length > 0) {
-            await updateUser(user.id, token, 'profile', profileFieldsToUpdate);
+            await updateUser(user.id, 'profile', profileFieldsToUpdate);
             successCount++;
         }
         
@@ -213,7 +212,7 @@ export default function ProfilePage() {
 
     if (successCount > 0) {
       // Re-fetch data from server to ensure UI is in sync with the latest data
-      const freshUserData = await fetchUserProfile(user.id, token);
+      const freshUserData = await fetchUserProfile(user.id);
       setUser(freshUserData);
       localStorage.setItem('user', JSON.stringify(freshUserData));
       window.dispatchEvent(new Event('storage'));
@@ -241,11 +240,10 @@ export default function ProfilePage() {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    const token = localStorage.getItem('accessToken');
 
-    if (file && user && token) {
+    if (file && user) {
       try {
-        await uploadAvatar(user.id, token, file);
+        await uploadAvatar(user.id, file);
         toast({
           title: 'Avatar Uploaded',
           description: 'Your new profile picture has been saved.',
