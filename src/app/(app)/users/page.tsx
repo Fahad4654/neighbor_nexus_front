@@ -94,51 +94,53 @@ export default function UsersPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table className="min-w-[1200px] table-fixed">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[150px] whitespace-nowrap">Username</TableHead>
-                  <TableHead className="w-[150px] whitespace-nowrap">First Name</TableHead>
-                  <TableHead className="w-[150px] whitespace-nowrap">Last Name</TableHead>
-                  <TableHead className="w-[200px] whitespace-nowrap">Email</TableHead>
-                  <TableHead className="w-[150px] whitespace-nowrap">Phone</TableHead>
-                  <TableHead className="w-[100px] whitespace-nowrap">Status</TableHead>
-                  <TableHead className="w-[100px] whitespace-nowrap">Role</TableHead>
-                  <TableHead className="w-[100px] whitespace-nowrap">Rating</TableHead>
-                  <TableHead className="w-[150px] whitespace-nowrap">Geo Location</TableHead>
-                  <TableHead className="w-[150px] whitespace-nowrap">Joined</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium truncate">{user.username}</TableCell>
-                    <TableCell className="truncate">{user.firstname}</TableCell>
-                    <TableCell className="truncate">{user.lastname}</TableCell>
-                    <TableCell className="truncate">{user.email}</TableCell>
-                    <TableCell className="truncate">{user.phoneNumber || 'N/A'}</TableCell>
-                    <TableCell>
-                       <Badge variant={user.isVerified ? 'secondary' : 'outline'}>
-                        {user.isVerified ? 'Verified' : 'Pending'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {user.isAdmin ? <Badge variant="destructive">Admin</Badge> : 'User'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /> 
-                          {user.rating_avg ? parseFloat(user.rating_avg).toFixed(1) : 'N/A'}
-                      </div>
-                    </TableCell>
-                    <TableCell className="truncate">{formatGeoLocation(user.geo_location)}</TableCell>
-                    <TableCell className="truncate">
-                      {user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'}
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[1200px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[150px]">Username</TableHead>
+                    <TableHead className="w-[150px]">First Name</TableHead>
+                    <TableHead className="w-[150px]">Last Name</TableHead>
+                    <TableHead className="w-[200px]">Email</TableHead>
+                    <TableHead className="w-[150px]">Phone</TableHead>
+                    <TableHead className="w-[100px]">Status</TableHead>
+                    <TableHead className="w-[100px]">Role</TableHead>
+                    <TableHead className="w-[100px]">Rating</TableHead>
+                    <TableHead className="w-[150px]">Geo Location</TableHead>
+                    <TableHead className="w-[150px]">Joined</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium truncate">{user.username}</TableCell>
+                      <TableCell className="truncate">{user.firstname}</TableCell>
+                      <TableCell className="truncate">{user.lastname}</TableCell>
+                      <TableCell className="truncate">{user.email}</TableCell>
+                      <TableCell className="truncate">{user.phoneNumber || 'N/A'}</TableCell>
+                      <TableCell>
+                         <Badge variant={user.isVerified ? 'secondary' : 'outline'}>
+                          {user.isVerified ? 'Verified' : 'Pending'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {user.isAdmin ? <Badge variant="destructive">Admin</Badge> : 'User'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /> 
+                            {user.rating_avg ? parseFloat(user.rating_avg).toFixed(1) : 'N/A'}
+                        </div>
+                      </TableCell>
+                      <TableCell className="truncate">{formatGeoLocation(user.geo_location)}</TableCell>
+                      <TableCell className="truncate">
+                        {user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
     </div>
