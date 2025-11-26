@@ -100,7 +100,7 @@ export default function UsersPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-auto max-h-[750px]">
               <Table className="min-w-[1200px]">
                 <TableHeader>
                   <TableRow>
