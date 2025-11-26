@@ -100,53 +100,51 @@ export default function UsersPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto overflow-y-auto max-h-[750px]">
-              <Table className="min-w-[1200px]">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[150px]">Username</TableHead>
-                    <TableHead className="w-[150px]">First Name</TableHead>
-                    <TableHead className="w-[150px]">Last Name</TableHead>
-                    <TableHead className="w-[200px]">Email</TableHead>
-                    <TableHead className="w-[150px]">Phone</TableHead>
-                    <TableHead className="w-[100px]">Status</TableHead>
-                    <TableHead className="w-[100px]">Role</TableHead>
-                    <TableHead className="w-[100px]">Rating</TableHead>
-                    <TableHead className="w-[150px]">Geo Location</TableHead>
-                    <TableHead className="w-[150px]">Joined</TableHead>
+            <Table wrapperClassName="max-h-[750px] overflow-y-auto" className="min-w-[1200px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[150px] truncate">Username</TableHead>
+                  <TableHead className="w-[150px] truncate">First Name</TableHead>
+                  <TableHead className="w-[150px] truncate">Last Name</TableHead>
+                  <TableHead className="w-[200px] truncate">Email</TableHead>
+                  <TableHead className="w-[150px] truncate">Phone</TableHead>
+                  <TableHead className="w-[100px] truncate">Status</TableHead>
+                  <TableHead className="w-[100px] truncate">Role</TableHead>
+                  <TableHead className="w-[100px] truncate">Rating</TableHead>
+                  <TableHead className="w-[150px] truncate">Geo Location</TableHead>
+                  <TableHead className="w-[150px] truncate">Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium truncate">{user.username}</TableCell>
+                    <TableCell className="truncate">{user.firstname}</TableCell>
+                    <TableCell className="truncate">{user.lastname}</TableCell>
+                    <TableCell className="truncate">{user.email}</TableCell>
+                    <TableCell className="truncate">{user.phoneNumber || 'N/A'}</TableCell>
+                    <TableCell>
+                       <Badge variant={user.isVerified ? 'secondary' : 'outline'}>
+                        {user.isVerified ? 'Verified' : 'Pending'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {user.isAdmin ? <Badge variant="destructive">Admin</Badge> : 'User'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /> 
+                          {user.rating_avg ? parseFloat(user.rating_avg).toFixed(1) : 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell className="truncate">{formatGeoLocation(user.geo_location)}</TableCell>
+                    <TableCell className="truncate">
+                      {user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium truncate">{user.username}</TableCell>
-                      <TableCell className="truncate">{user.firstname}</TableCell>
-                      <TableCell className="truncate">{user.lastname}</TableCell>
-                      <TableCell className="truncate">{user.email}</TableCell>
-                      <TableCell className="truncate">{user.phoneNumber || 'N/A'}</TableCell>
-                      <TableCell>
-                         <Badge variant={user.isVerified ? 'secondary' : 'outline'}>
-                          {user.isVerified ? 'Verified' : 'Pending'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {user.isAdmin ? <Badge variant="destructive">Admin</Badge> : 'User'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /> 
-                            {user.rating_avg ? parseFloat(user.rating_avg).toFixed(1) : 'N/A'}
-                        </div>
-                      </TableCell>
-                      <TableCell className="truncate">{formatGeoLocation(user.geo_location)}</TableCell>
-                      <TableCell className="truncate">
-                        {user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
     </div>
