@@ -15,11 +15,17 @@ export async function login(identifier: string, password: string): Promise<any> 
     body: JSON.stringify({ identifier, password }),
   });
 
+  if (!response.ok) {
+    try {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Login failed');
+    } catch (e) {
+      throw new Error(`Login failed: ${response.statusText}`);
+    }
+  }
+
   const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data.message || 'Login failed');
-  }
 
   if (data.accessToken) {
     localStorage.setItem('accessToken', data.accessToken);
@@ -181,6 +187,7 @@ export async function logout() {
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
   localStorage.removeItem('avatarImage');
+  window.dispatchEvent(new Event('storage'));
 }
 
 export function getLoggedInUser() {

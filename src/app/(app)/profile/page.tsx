@@ -127,8 +127,8 @@ export default function ProfilePage() {
     // This listener handles avatar updates from other tabs or after uploads
     const handleStorageChange = () => {
         const storedAvatar = localStorage.getItem('avatarImage');
-        if (user && storedAvatar) {
-            setAvatarSrc(storedAvatar);
+        if (storedAvatar !== avatarSrc) {
+            setAvatarSrc(storedAvatar || undefined);
         }
     };
 
@@ -180,8 +180,7 @@ export default function ProfilePage() {
     const profileFieldsToUpdate = _.pick(data, _.intersection(Object.keys(dirtyFields), ['bio', 'address']));
 
     let successCount = 0;
-    const totalOperations = (Object.keys(coreFieldsToUpdate).length > 0 ? 1 : 0) + (Object.keys(profileFieldsToUpdate).length > 0 ? 1 : 0);
-
+    
     try {
         if (Object.keys(coreFieldsToUpdate).length > 0) {
             await updateUser(user.id, token, 'core', coreFieldsToUpdate);
@@ -323,7 +322,7 @@ export default function ProfilePage() {
                             accept="image/png, image/jpeg, image/gif"
                         />
                         <Avatar className="h-32 w-32">
-                            <AvatarImage src={avatarSrc} alt={user.username} />
+                            <AvatarImage src={avatarSrc} alt={user.username} key={avatarSrc} />
                             <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <Button size="icon" className="absolute bottom-0 right-0 rounded-full" onClick={handleAvatarUploadClick}>
@@ -509,5 +508,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

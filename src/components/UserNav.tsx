@@ -30,7 +30,7 @@ type User = {
 };
 
 export function UserNav() {
-  const [user, setUser] = useState<User | null>(getLoggedInUser);
+  const [user, setUser] = useState<User | null>(null);
   const [avatarSrc, setAvatarSrc] = useState<string | undefined>(undefined);
   const router = useRouter();
 
@@ -42,6 +42,9 @@ export function UserNav() {
         const storedAvatar = localStorage.getItem('avatarImage');
         if (storedAvatar) {
           setAvatarSrc(storedAvatar);
+        } else if (loggedInUser.profile?.avatarUrl) {
+          // Fallback if avatar is not in local storage for some reason
+           setAvatarSrc(`${process.env.NEXT_PUBLIC_BACKEND_URL}${loggedInUser.profile.avatarUrl}`);
         } else {
           setAvatarSrc(`https://avatar.vercel.sh/${loggedInUser.username}.png`);
         }
@@ -84,6 +87,7 @@ export function UserNav() {
             <AvatarImage
               src={avatarSrc}
               alt={user.username}
+              key={avatarSrc} // Add key to force re-render on change
             />
             <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
