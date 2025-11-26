@@ -28,12 +28,12 @@ export async function login(identifier: string, password: string): Promise<any> 
     localStorage.setItem('refreshToken', data.refreshToken);
   }
   if (data.user) {
-    const userToStore = { ...data.user, profile: data.profile };
-    localStorage.setItem('user', JSON.stringify(userToStore));
+    // The user object from the API now contains the profile.
+    localStorage.setItem('user', JSON.stringify(data.user));
 
-    if (data.profile && data.profile.avatarUrl) {
+    if (data.user.profile && data.user.profile.avatarUrl) {
       try {
-        const avatarResponse = await fetch(`${backendUrl}${data.profile.avatarUrl}`, {
+        const avatarResponse = await fetch(`${backendUrl}${data.user.profile.avatarUrl}`, {
           headers: {
             'Authorization': `Bearer ${data.accessToken}`
           }
@@ -43,10 +43,12 @@ export async function login(identifier: string, password: string): Promise<any> 
           const reader = new FileReader();
           reader.onloadend = () => {
             localStorage.setItem('avatarImage', reader.result as string);
+            // Dispatch a storage event to notify other components of the change
             window.dispatchEvent(new Event('storage'));
           };
           reader.readAsDataURL(blob);
         } else {
+           // If fetching avatar fails, remove any old one
            localStorage.removeItem('avatarImage');
            window.dispatchEvent(new Event('storage'));
         }
@@ -56,6 +58,7 @@ export async function login(identifier: string, password: string): Promise<any> 
         window.dispatchEvent(new Event('storage'));
       }
     } else {
+      // If no avatarUrl is present, ensure any old avatar is removed
       localStorage.removeItem('avatarImage');
       window.dispatchEvent(new Event('storage'));
     }
