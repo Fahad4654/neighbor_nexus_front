@@ -94,29 +94,29 @@ export default function UsersPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
+            <Table className="min-w-[1200px] table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>First Name</TableHead>
-                  <TableHead>Last Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Rating</TableHead>
-                  <TableHead>Geo Location</TableHead>
-                  <TableHead>Joined</TableHead>
+                  <TableHead className="w-[150px] whitespace-nowrap">Username</TableHead>
+                  <TableHead className="w-[150px] whitespace-nowrap">First Name</TableHead>
+                  <TableHead className="w-[150px] whitespace-nowrap">Last Name</TableHead>
+                  <TableHead className="w-[200px] whitespace-nowrap">Email</TableHead>
+                  <TableHead className="w-[150px] whitespace-nowrap">Phone</TableHead>
+                  <TableHead className="w-[100px] whitespace-nowrap">Status</TableHead>
+                  <TableHead className="w-[100px] whitespace-nowrap">Role</TableHead>
+                  <TableHead className="w-[100px] whitespace-nowrap">Rating</TableHead>
+                  <TableHead className="w-[150px] whitespace-nowrap">Geo Location</TableHead>
+                  <TableHead className="w-[150px] whitespace-nowrap">Joined</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.username}</TableCell>
-                    <TableCell>{user.firstname}</TableCell>
-                    <TableCell>{user.lastname}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.phoneNumber || 'N/A'}</TableCell>
+                    <TableCell className="font-medium truncate">{user.username}</TableCell>
+                    <TableCell className="truncate">{user.firstname}</TableCell>
+                    <TableCell className="truncate">{user.lastname}</TableCell>
+                    <TableCell className="truncate">{user.email}</TableCell>
+                    <TableCell className="truncate">{user.phoneNumber || 'N/A'}</TableCell>
                     <TableCell>
                        <Badge variant={user.isVerified ? 'secondary' : 'outline'}>
                         {user.isVerified ? 'Verified' : 'Pending'}
@@ -131,8 +131,8 @@ export default function UsersPage() {
                           {user.rating_avg ? parseFloat(user.rating_avg).toFixed(1) : 'N/A'}
                       </div>
                     </TableCell>
-                    <TableCell>{formatGeoLocation(user.geo_location)}</TableCell>
-                    <TableCell>
+                    <TableCell className="truncate">{formatGeoLocation(user.geo_location)}</TableCell>
+                    <TableCell className="truncate">
                       {user.createdAt ? format(new Date(user.createdAt), 'PPP') : 'N/A'}
                     </TableCell>
                   </TableRow>
