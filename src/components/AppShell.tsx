@@ -35,16 +35,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-40">
-          <SidebarTrigger className="lg:hidden" />
-          <div className="w-full flex-1">
-            {/* Can add breadcrumbs or search here */}
-          </div>
-          <UserNav />
-        </header>
-        <main className="p-4 lg:p-6 overflow-auto">
-            {children}
-        </main>
+        <div className="flex flex-col h-svh">
+            <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-40">
+              <SidebarTrigger className="lg:hidden" />
+              <div className="w-full flex-1">
+                {/* Can add breadcrumbs or search here */}
+              </div>
+              <UserNav />
+            </header>
+            <main className="overflow-auto p-4 lg:p-6">
+                {children}
+            </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
