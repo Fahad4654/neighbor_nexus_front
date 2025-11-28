@@ -145,6 +145,7 @@ const SidebarProvider = React.forwardRef<
               "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
               className
             )}
+            data-state={state}
             ref={ref}
             {...props}
           >
@@ -298,16 +299,14 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
-  const { state } = useSidebar();
   return (
     <main
       ref={ref}
       className={cn(
         "flex min-h-svh flex-1 flex-col bg-background",
         "transition-all duration-200 ease-in-out",
-        state === "expanded"
-          ? "md:ml-[var(--sidebar-width)]"
-          : "md:ml-[var(--sidebar-width-icon)]",
+        "md:ml-[var(--sidebar-width-icon)]",
+        "group-data-[state=expanded]/sidebar-wrapper:md:ml-[var(--sidebar-width)]",
         className
       )}
       {...props}
