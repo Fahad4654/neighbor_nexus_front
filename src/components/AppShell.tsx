@@ -34,8 +34,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
+      <SidebarInset className="z-0">
+        <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-40">
           <SidebarTrigger className="lg:hidden" />
           <div className="w-full flex-1">
             {/* Can add breadcrumbs or search here */}
