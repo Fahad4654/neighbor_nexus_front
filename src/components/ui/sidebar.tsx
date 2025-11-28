@@ -294,21 +294,22 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
-    const { state } = useSidebar();
+  const { state } = useSidebar();
   return (
     <main
       ref={ref}
       className={cn(
         "flex min-h-svh flex-1 flex-col bg-background",
         "transition-all duration-200 ease-in-out",
-        "md:ml-[var(--sidebar-width-icon)]",
-        state === 'expanded' && "md:ml-[var(--sidebar-width)]",
+        state === "expanded"
+          ? "md:ml-[var(--sidebar-width)]"
+          : "md:ml-[var(--sidebar-width-icon)]",
         className
       )}
       {...props}
     />
-  )
-})
+  );
+});
 SidebarInset.displayName = "SidebarInset"
 
 const SidebarInput = React.forwardRef<
