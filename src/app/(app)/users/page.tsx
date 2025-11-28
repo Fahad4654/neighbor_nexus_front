@@ -105,7 +105,7 @@ export default function UsersPage() {
                 <TableRow>
                   <TableHead className="w-[150px] truncate sticky top-0 z-10 bg-card">Username</TableHead>
                   <TableHead className="w-[150px] truncate sticky top-0 z-10 bg-card">First Name</TableHead>
-                  <TableHead className="w-[150px] truncate sticky top-0 z-1_0 bg-card">Last Name</TableHead>
+                  <TableHead className="w-[150px] truncate sticky top-0 z-10 bg-card">Last Name</TableHead>
                   <TableHead className="w-[200px] truncate sticky top-0 z-10 bg-card">Email</TableHead>
                   <TableHead className="w-[150px] truncate sticky top-0 z-10 bg-card">Phone</TableHead>
                   <TableHead className="w-[100px] truncate sticky top-0 z-10 bg-card">Status</TableHead>

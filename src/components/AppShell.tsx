@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset className="h-dvh flex flex-col">
+      <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
           <SidebarTrigger className="lg:hidden" />
           <div className="w-full flex-1">
@@ -42,10 +42,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <UserNav />
         </header>
-        <main className="flex-1 overflow-auto p-4 lg:p-6">
-          <div className="flex flex-col gap-4 lg:gap-6">
+        <main className="p-4 lg:p-6 overflow-auto">
             {children}
-          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
