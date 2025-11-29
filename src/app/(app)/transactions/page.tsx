@@ -1,12 +1,7 @@
 'use client';
 
+import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
 import {
   Card,
   CardContent,
@@ -78,39 +73,36 @@ const TransactionCard = ({ transaction }: { transaction: Transaction }) => {
 };
 
 export default function TransactionsPage() {
-  const getTransactionsByStatus = (status: string) => {
-    return transactions.filter((t) => t.status === status);
-  };
+  const [filter, setFilter] = useState('Active');
+  const filters = ['Active', 'Pending', 'Completed'];
 
-  const tabs = ['Active', 'Pending', 'Completed'];
+  const filteredTransactions = transactions.filter((t) => t.status === filter);
 
   return (
     <div className="space-y-4">
       <PageHeader title="My Transactions" />
-      <Tabs defaultValue="Active">
-        <TabsList>
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab} value={tab}>
-              {tab}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {tabs.map((tab) => (
-          <TabsContent key={tab} value={tab}>
-            <div className="grid gap-4 md:grid-cols-2">
-              {getTransactionsByStatus(tab).length > 0 ? (
-                getTransactionsByStatus(tab).map((tx) => (
-                  <TransactionCard key={tx.id} transaction={tx} />
-                ))
-              ) : (
-                <p className="text-muted-foreground col-span-2 mt-4">
-                  No {tab.toLowerCase()} transactions.
-                </p>
-              )}
-            </div>
-          </TabsContent>
+      <div className="flex items-center gap-2">
+        {filters.map((f) => (
+          <Button
+            key={f}
+            variant={filter === f ? 'default' : 'outline'}
+            onClick={() => setFilter(f)}
+          >
+            {f}
+          </Button>
         ))}
-      </Tabs>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {filteredTransactions.length > 0 ? (
+          filteredTransactions.map((tx) => (
+            <TransactionCard key={tx.id} transaction={tx} />
+          ))
+        ) : (
+          <p className="text-muted-foreground col-span-2 mt-4">
+            No {filter.toLowerCase()} transactions.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
